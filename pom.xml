@@ -130,7 +130,7 @@
   
   
   <dependency>
- <groupId>tools.exerc.basics</groupId>
+ <groupId>com.github.michaelederaut</groupId>
   <artifactId>basics</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   </dependency>  
