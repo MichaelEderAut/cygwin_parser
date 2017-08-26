@@ -10,15 +10,18 @@ import com.github.michaelederaut.cygwinparser.SetupConfigContents.Site;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import regexodus.Pattern;
+// import regexodus.Pattern;
+import java.util.regex.Pattern;
 
 public class SetupConfigParser {
 
 	public static final String S_pna_setup_rc = "C:\\cygwin64\\etc\\setup\\setup.rc";
 	public static final String S_re_payload = "^\\s{1,}([\\S]+)\\s*$";
-	public static final Pattern P_payload   = new Pattern(S_re_payload);
+//	public static final Pattern P_payload   = new Pattern(S_re_payload);
+	public static final Pattern P_payload = Pattern.compile(S_re_payload);
 	public static final String S_re_mirror_site = "^\\s{1,}([^;]+)\\;([^;]+)\\;([^;]+)\\;([^;]+)\\s*$";
-	public static final Pattern P_mirror_site   = new Pattern(S_re_mirror_site);
+//	public static final Pattern P_mirror_site   = new Pattern(S_re_mirror_site);
+	public static final Pattern P_mirror_site = Pattern.compile(S_re_mirror_site);
 	
 	public static final String LAST_CACHE   = "last-cache";
 	public static final String MIRRORS_LIST = "mirrors-lst";

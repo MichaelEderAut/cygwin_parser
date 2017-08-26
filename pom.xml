@@ -12,6 +12,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <maven.compiler.target>14</maven.compiler.target>
+    <maven.compiler.source>14</maven.compiler.source>
+    <java.home>{$env.JAVA_HOME}</java.home>
   </properties>
 
 <build>
@@ -92,11 +95,11 @@
     <version>1.1</version>
     </dependency>
     
-<dependency>
+<!-- <dependency>
     <groupId>com.github.tommyettinger</groupId>
     <artifactId>regexodus</artifactId>
     <version>0.1.9</version>
-</dependency>
+</dependency> -->
 
 
  <!-- http://mvnrepository.com/artifact/org.codehaus.plexus/plexus-utils -->
