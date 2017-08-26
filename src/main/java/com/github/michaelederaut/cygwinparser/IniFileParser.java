@@ -152,14 +152,14 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 		else if (E_parsing_state == ParsingState.Requires) {
 			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_version);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
-			   S_version = O_grp_match_res.HS_named_groups.get(VERSION).S_val;
+			   S_version = O_grp_match_res.HS_named_groups.get(VERSION).S_grp_val;
 			   E_parsing_state = ParsingState.Version;		
 			   }
 		    }
 		else if (E_parsing_state == ParsingState.Version) {
 			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_install);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
-			   S_archinfo = O_grp_match_res.HS_named_groups.get(INSTALL).S_val;
+			   S_archinfo = O_grp_match_res.HS_named_groups.get(INSTALL).S_grp_val;
 			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo);
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
@@ -174,7 +174,7 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 		else if (E_parsing_state == ParsingState.Install) {
 			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_source);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
-			   S_archinfo = O_grp_match_res.HS_named_groups.get(SOURCE).S_val;
+			   S_archinfo = O_grp_match_res.HS_named_groups.get(SOURCE).S_grp_val;
 			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo);
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
@@ -312,7 +312,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 					   O_pkg_vers_info_prev = null;
 				       }
 					
-					S_pckg_name = O_grp_match_res.HS_named_groups.get(PKG_NAME).S_val;
+					S_pckg_name = O_grp_match_res.HS_named_groups.get(PKG_NAME).S_grp_val;
 					I_line_nbr_of_pckg_start_f1 = I_line_nbr_f1;
 					E_parsing_state = ParsingState.PkgName;
 //					S_msg_1 = "Package-name: " + S_pkg_name;
@@ -323,7 +323,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			else if (E_parsing_state == ParsingState.PkgName) {
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_sdesc);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
-					S_description_short = O_grp_match_res.HS_named_groups.get(DESCRIPTION_SHORT).S_val;
+					S_description_short = O_grp_match_res.HS_named_groups.get(DESCRIPTION_SHORT).S_grp_val;
 					E_parsing_state = ParsingState.Sdesc;
 //					S_msg_1 = "Short-Descrition: " + S_description_short;
 //					System.out.println(S_msg_1);
@@ -333,8 +333,8 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc);
 				SB_description_long = new StringBuilder();
 				if (O_grp_match_res.I_map_size_f1 >= 2) {
-				   S_description_long = O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_val;	
-			       S_closing_quote = O_grp_match_res.HS_named_groups.get(CLOSING_QUOTE).S_val;
+				   S_description_long = O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_grp_val;	
+			       S_closing_quote = O_grp_match_res.HS_named_groups.get(CLOSING_QUOTE).S_grp_val;
 			       if (StringUtils.isEmpty(S_closing_quote)) {  // line containing long description will be continued
 			    	   E_parsing_state = ParsingState.LdescCont;
 			    	   SB_description_long = new StringBuilder(S_description_long);
@@ -342,20 +342,20 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			       else {
 			    	   E_parsing_state = ParsingState.Ldesc; // line containing long description complete
 			           } 
-				   S_description_long_part = O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_val;
+				   S_description_long_part = O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_grp_val;
 			      // System.out.println(ParsingState.Sdesc.name());
 				}
 			}
 			else if (E_parsing_state == ParsingState.LdescCont)  {
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc_cont);
 				if (O_grp_match_res.I_map_size_f1 >= 2) {
-					S_description_long_part =  O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_val;
+					S_description_long_part =  O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_grp_val;
 					
 					if (StringUtils.isNotBlank(S_description_long_part)) {
 						SB_description_long.append(" ");
 					   }
 					SB_description_long.append(S_description_long_part);
-					S_closing_quote = O_grp_match_res.HS_named_groups.get(CLOSING_QUOTE).S_val;
+					S_closing_quote = O_grp_match_res.HS_named_groups.get(CLOSING_QUOTE).S_grp_val;
 					if (StringUtils.isNotEmpty(S_closing_quote)) {  // lines containing long description complete
 					   E_parsing_state = ParsingState.Ldesc;
 					   S_description_long = SB_description_long.toString(); 
@@ -365,7 +365,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			else if (E_parsing_state == ParsingState.Ldesc) {
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_category);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
-				   S_category = O_grp_match_res.HS_named_groups.get(CATEGORY).S_val;
+				   S_category = O_grp_match_res.HS_named_groups.get(CATEGORY).S_grp_val;
 				   AS_category = S_category.split("\\s+");
 				   E_parsing_state = ParsingState.Category;
 				   }
@@ -373,7 +373,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			else if (E_parsing_state == ParsingState.Category)  {
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_requires);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
-				   S_requires = O_grp_match_res.HS_named_groups.get(REQUIRES).S_val;
+				   S_requires = O_grp_match_res.HS_named_groups.get(REQUIRES).S_grp_val;
 				   AS_requires = S_requires.split("\\s+");
 				   E_parsing_state = ParsingState.Requires;
 				   }

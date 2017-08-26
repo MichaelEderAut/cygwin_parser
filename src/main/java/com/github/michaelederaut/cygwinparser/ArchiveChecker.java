@@ -11,6 +11,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.text.StrBuilder;
 import org.apache.logging.log4j.core.util.ArrayUtils;
@@ -19,6 +20,7 @@ import org.apache.poi.openxml4j.exceptions.OpenXML4JRuntimeException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.FontFamily;
 import org.apache.poi.ss.usermodel.FontUnderline;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -55,7 +57,9 @@ public class ArchiveChecker {
 			new String[] {"Name" , 
 					  "expected version", 
 					  "install:" + System.lineSeparator() + "status / version found", 
-			          "source:"  + System.lineSeparator() + "status / version found"};
+			          "source:"  + System.lineSeparator() + "status / version found",
+			          "installation folder", 
+			          "source folder" +  System.lineSeparator() + "if different from installation folder"};
 	protected static final int I_nbr_cols_f1 = AS_header_row.length;  
 	protected String S_last_category;
 	
@@ -101,7 +105,7 @@ public class ArchiveChecker {
 			if (PI_S_bn.startsWith(S_prefix)) {
 			    I_len_prefix = S_prefix.length();
 			    S_suffix = PI_S_bn.substring(I_len_prefix);  
-			    O_grp_match_result = RegexpUtils.FO_match(S_suffix, this.P_tail);
+			    O_grp_match_result = RegexpUtils.FO_match(S_suffix, this.P_tail.O_patt);
 			    if (O_grp_match_result.I_array_size_f1 >=4) {
 			       S_version = O_grp_match_result.AS_numbered_groups[1];
 			       if (this.E_arch_purpose == ArchPurpose.install) {
@@ -147,7 +151,7 @@ public class ArchiveChecker {
 		ArchPurposeContents AO_arch_purpose[];
 		
 	 public RowContents(final String PI_S_category) {
-		this.E_type          = Type.category;
+		this.E_type      = Type.category;
 		this.S_name      = PI_S_category;	
 		}
 	 
@@ -220,7 +224,7 @@ public class ArchiveChecker {
 	    	    else {
 	    		   P_pckg = P_pckg_src; 
 	    	       }
-	    	    O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg); 
+	    	    O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg.O_patt); 
 	    	    if (O_grp_match_result.I_array_size_f1 >= 4) {
 	    		   S_version_requested = O_grp_match_result.AS_numbered_groups[1];
 	    		   S_bn_suffix         = O_grp_match_result.AS_numbered_groups[2];
@@ -348,7 +352,8 @@ public class ArchiveChecker {
 		
 		DlStatus E_dl_status;
 		ArchPurposeContents O_arch_purpose_contents, AO_arch_purpose_contents[];
-		String S_pckg_name, S_version_requested, S_version_found, S_hyperlink_destination, S_msg_1;
+		String S_pckg_name, S_version_requested, S_version_found, 
+		       S_hyperlink_install,  S_hyperlink_src, /* S_hyperlink_destination, */ S_msg_1;
 		int I_nbr_purposes_f1, i1, I_col_idx_f0;
 		
 		E_type = PI_O_row_contents.E_type;
@@ -368,7 +373,8 @@ public class ArchiveChecker {
 			O_cell.setCellValue(S_version_requested);
 			I_nbr_purposes_f1 = AO_arch_purpose_contents.length;
 			I_col_idx_f0 = 2;
-			for (i1 = 0; i1 < I_nbr_purposes_f1; i1++) {
+			S_hyperlink_install = null;
+			LOOP_CELL_COLS: for (i1 = 0; i1 < I_nbr_purposes_f1; i1++) {
 				S_version_found = null;
 				O_arch_purpose_contents = AO_arch_purpose_contents[i1];
 				if (O_arch_purpose_contents != null) {
@@ -381,6 +387,19 @@ public class ArchiveChecker {
 					   S_version_found = E_dl_status.name();
 				       }
 				   O_cell.setCellValue(S_version_found);
+				   
+				   if (i1 == 0) {
+					   S_hyperlink_install = O_arch_purpose_contents.S_hyperlink_txt;
+				       }
+				   else {
+					   S_hyperlink_src = O_arch_purpose_contents.S_hyperlink_txt;
+					   if (StringUtils.isBlank(S_hyperlink_src)) {
+						  break LOOP_CELL_COLS; 
+					      }
+					   if (StringUtils.equals(S_hyperlink_install, S_hyperlink_src)) {
+						  break LOOP_CELL_COLS;  
+					      }
+				       }
 				   O_cell = PO_O_row.createCell(I_col_idx_f0 + 2, CellType.STRING);
 				   O_cell.setCellValue(O_arch_purpose_contents.S_hyperlink_txt);
    			       O_hyper_link = (XSSFHyperlink)this.O_creation_helper.createHyperlink(HyperlinkType.FILE);
@@ -417,7 +436,7 @@ public class ArchiveChecker {
 		 ArchInfo                          O_arch_info_install, O_arch_info_src;
 		 PckgInfo                          O_pckg_info;
 		 PckgVersionInfo                   O_pckg_vers_info;
-		 Stack<String>                     AS_outlines;
+	//	 Stack<String>                     AS_outlines;
 		 Stack<RowContents>                AO_row_contents;
 		 RowContents                       O_row_contents_1;
 		 ArchPurposeContents               O_arch_purpose_contents_src, O_arch_purpose_contents_install, 
@@ -448,6 +467,7 @@ public class ArchiveChecker {
 	    O_font_hlink = O_wb.createFont();
 	    O_font_hlink.setColor(O_color_blue);
 	    O_font_hlink.setUnderline(FontUnderline.SINGLE);
+	    O_font_hlink.setFontName("Courier New");
 	    O_cell_style_hlink = O_wb.createCellStyle();
 	    O_cell_style_hlink.setFont(O_font_hlink);
 	    
@@ -469,7 +489,7 @@ public class ArchiveChecker {
 	        }
 	    O_work_sheet.createFreezePane(0, 1);  // freeze first row
 		HAS_categories = PI_O_setup_ini_contents.HAS_categories;
-		AS_outlines     = new Stack<String>();
+//		AS_outlines     = new Stack<String>();
 		AO_row_contents = new Stack<RowContents>();
 		AS_categories  = HAS_categories.navigableKeySet();
 		I_line_nbr_f1  = 0;
@@ -479,7 +499,7 @@ public class ArchiveChecker {
 		for (String S_category: AS_categories) {
 			I_min_lvl_category = Integer.MAX_VALUE;
 			
-			AS_outlines.clear();
+//			AS_outlines.clear();
 			AO_row_contents.clear();
 			S_outline_c = "--- " + S_category + " ---"; 
 			S_outline_f = "----------------------------- " + S_category + " -----------------------------";
@@ -488,7 +508,7 @@ public class ArchiveChecker {
 			 
 			System.out.println(S_outline_c);
 		//	PB_O_buff_wrtr.write(S_outline_f); PB_O_buff_wrtr.newLine();
-			AS_outlines.push(S_outline_f);
+//			AS_outlines.push(S_outline_f);
 			AS_packages = HAS_categories.get(S_category);
 			for (String S_package: AS_packages) {
 				I_min_lvl_package = Integer.MAX_VALUE;
@@ -581,7 +601,7 @@ public class ArchiveChecker {
 				    }	 
 				 if (I_min_lvl_package < DL_MINIMUM_REQUIREMENT) {
 					 S_outline_f = SB_outline_f.toString();
-					 AS_outlines.push(S_outline_f);
+//					 AS_outlines.push(S_outline_f);
 					 AO_arch_purpose_contents = new ArchPurposeContents[] {O_arch_purpose_contents_install, O_arch_purpose_contents_src};
 					 O_row_contents_1 = new RowContents(S_package, S_version_current, AO_arch_purpose_contents);
 					 AO_row_contents.push(O_row_contents_1);

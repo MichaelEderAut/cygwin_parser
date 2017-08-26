@@ -192,7 +192,6 @@ private static String FS_get_site_root(
     			O_setup_ini_contents,
     			O_MI_nbr_lines_written);
 
-    	
     	I_nbr_lines_written_f1 = O_MI_nbr_lines_written.getValue();
     	S_msg_1 = I_nbr_lines_written_f1 + " rows written to worksheet: \"" + F_pna_categories_xslx.getAbsolutePath() + "\".";
     	System.out.println("\n" + S_msg_1);
