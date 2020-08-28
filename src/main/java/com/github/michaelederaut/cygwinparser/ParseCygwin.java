@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -19,7 +20,8 @@ import com.github.michaelederaut.basics.RegexpUtils;
 
 import java.net.URLEncoder;
 
-import regexodus.Pattern;
+// import regexodus.Pattern;
+
 
 public class ParseCygwin {
 
