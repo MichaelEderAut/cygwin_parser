@@ -1,6 +1,11 @@
 package com.github.michaelederaut.cygwinparser;
 
 import java.awt.Color;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -30,6 +35,9 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile;
 import com.github.michaelederaut.basics.RegexpUtils;
@@ -71,6 +79,68 @@ public class ArchiveChecker {
 	
 	public String S_dna_cygw_repository_root;
 	
+	protected class PckgNameFilter2 {
+		
+		public String S_prefix;
+	    public ArchPurpose E_arch_purpose;
+	    public NamedPattern P_tail;
+	    public Stack<String> AS_versions;
+			  
+	    protected PckgNameFilter2(
+				final String PI_S_prefix,
+				final ArchPurpose PI_E_arch_purpose) {
+			
+			this.S_prefix = PI_S_prefix;
+			this.E_arch_purpose = PI_E_arch_purpose;
+			if (PI_E_arch_purpose == ArchPurpose.install) {
+			   this.P_tail = P_pckg_install;	
+			   }
+			else {
+			   this.P_tail = P_pckg_src;
+			    }
+			this.AS_versions = new Stack<String>();
+		}	
+	    
+	    
+	   	public BiPredicate<Path, BasicFileAttributes>  F_B_is_regular =
+        		  (Path PI_O_path,  BasicFileAttributes PI_attrs) ->   {
+        			  
+        	 GroupMatchResult O_grp_match_result;		  
+        	 Path P_bn;
+        	 int I_len_prefix;		  
+        	 String S_pn, S_bn, S_suffix, S_version;
+        	
+        	 boolean B_retval = false;
+        	  
+        	 if (!PI_attrs.isRegularFile()) {
+        	 	 return B_retval;
+        	     }
+        	 P_bn = PI_O_path.getFileName();
+        	 S_bn = P_bn.toString();
+        //	 S_pn = PI_O_path.toString();
+        	  
+             if (!S_bn.startsWith(this.S_prefix)) {
+            	return B_retval;
+                }
+              I_len_prefix = this.S_prefix.length();
+              S_suffix = S_bn.substring(I_len_prefix);
+              O_grp_match_result = RegexpUtils.FO_match(S_suffix, this.P_tail.O_patt);
+              if (O_grp_match_result.I_array_size_f1 < 4) {
+            	  return B_retval;
+                  }
+              S_version = O_grp_match_result.AS_numbered_groups[1];
+              if (this.E_arch_purpose == ArchPurpose.install) {
+			  	  if (S_version.endsWith("-src")) {
+			         return B_retval;
+			    	 }
+			      }
+              this.AS_versions.push(S_version);
+			  B_retval = true;
+	          return B_retval;
+	    };
+	}
+//----------------------		
+	
 	class PckgNameFilter implements FilenameFilter {
 		
 		public String S_prefix;
@@ -88,7 +158,7 @@ public class ArchiveChecker {
 			   this.P_tail = P_pckg_install;	
 			   }
 			else {
-				 this.P_tail = P_pckg_src;
+			   this.P_tail = P_pckg_src;
 			    }
 			this.AS_versions = new Stack<String>();
 		}
@@ -120,7 +190,6 @@ public class ArchiveChecker {
 			return  B_retval;
 		}
 	}
-	
 	
 	protected static class ArchPurposeContents {
 		SetupIniContents.ArchInfo.DlStatus E_dl_status;
@@ -180,10 +249,12 @@ public class ArchiveChecker {
 		  AssertionError E_assert;
 		  RuntimeException E_rt;
 		  File F_pna_archive, F_dna_archives;
+		  Path FP_dna_archives;
 		  
 		  NamedPattern P_pckg;
 		  GroupMatchResult O_grp_match_result;
 		  PckgNameFilter   O_file_filter;
+		  PckgNameFilter2   O_file_filter_2;
 		  List<String> AS_vers_prev;
 		  
 		  String S_msg_1, S_msg_2, S_pna_archive, S_pnr_archive, S_pckg_name, S_bn_archive_requested, 
@@ -192,6 +263,17 @@ public class ArchiveChecker {
 	      int I_retval_nbr_checked_archives, I_nbr_archive_fn_parts_f1, I_idx_pckg_name_f0, I_idx_bn_archive_f0, I_len_dnr_pckg_f1, I_nbr_prev_versions_f1;
 	      long L_size_actual, L_size_expected;
 	      
+	      final BiPredicate<Path, BasicFileAttributes> F_B_is_regular =
+        		  (Path PI_O_path,  BasicFileAttributes PI_attrs) ->   {
+        			 String S_pn;
+        			  boolean B_retval = false;
+        			 if (PI_attrs.isRegularFile()) {
+        				 S_pn = PI_O_path.toString();
+        		//		 if (P_pckg_install.O_patt.ma)
+        			 };
+	    			  return B_retval;
+	    		  };  
+	         
 	      I_retval_nbr_checked_archives = 0;
 	      S_pnr_archive = PB_O_arch_info.S_pnr_archive;
 	      PB_O_arch_info.S_prv_ver = null;
@@ -230,10 +312,22 @@ public class ArchiveChecker {
 	    		   S_bn_suffix         = O_grp_match_result.AS_numbered_groups[2];
 	    		   S_arch_type         = O_grp_match_result.AS_numbered_groups[3];
 	    		   O_file_filter = new PckgNameFilter(S_pckg_name, PI_E_purpose);
+	    		   O_file_filter_2 =  new PckgNameFilter2(S_pckg_name, PI_E_purpose);
 	    		  
 	    		  F_dna_archives = F_pna_archive.getParentFile();
 	    		  if (F_dna_archives.isDirectory()) {
-		    		  AS_bn_prev = F_dna_archives.list(O_file_filter);
+	    			  // https://stackoverflow.com/questions/2056221/recursively-list-files-in-java
+	    			  FP_dna_archives = Paths.get(F_dna_archives.getAbsolutePath());
+	    			  try {
+						AS_bn_prev = (String[])Files.find(FP_dna_archives, 3, F_B_is_regular).collect(Collectors.toList()).toArray();
+					} catch (IOException|ClassCastException PI_E_io) {
+						S_msg_1 = "Unable to find archives under \"" + F_dna_archives.getAbsolutePath();
+						E_rt = new RuntimeException(S_msg_1, PI_E_io);
+						throw E_rt;
+						// PI_E_io.printStackTrace(System.err);
+					}  // don't follow links
+	    			  
+		    		//  AS_bn_prev = F_dna_archives.list(O_file_filter);
 		    		  I_nbr_prev_versions_f1 =  AS_bn_prev.length;
 		    		  if (I_nbr_prev_versions_f1 > 0) {
 		    			 AS_vers_prev = O_file_filter.AS_versions;
