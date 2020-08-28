@@ -6,6 +6,7 @@ import static com.github.michaelederaut.basics.RegexpUtils.NamedPattern;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.*;
@@ -17,7 +18,7 @@ import com.github.michaelederaut.basics.LineNbrRandomAccessFile.ReadLinePolicy;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 
-import regexodus.Pattern;
+// import regexodus.Pattern;
 
 public class IniFileParser {
 	
@@ -150,17 +151,17 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 		      }
 		   }
 		else if (E_parsing_state == ParsingState.Requires) {
-			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_version);
+			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_version.O_patt);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
 			   S_version = O_grp_match_res.HS_named_groups.get(VERSION).S_grp_val;
 			   E_parsing_state = ParsingState.Version;		
 			   }
 		    }
 		else if (E_parsing_state == ParsingState.Version) {
-			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_install);
+			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_install.O_patt);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
 			   S_archinfo = O_grp_match_res.HS_named_groups.get(INSTALL).S_grp_val;
-			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo);
+			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo.O_patt);
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
 				  S_pn_archive = AS_numbered_groups[1];
@@ -172,10 +173,10 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 			   }
 		    }
 		else if (E_parsing_state == ParsingState.Install) {
-			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_source);
+			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_source.O_patt);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
 			   S_archinfo = O_grp_match_res.HS_named_groups.get(SOURCE).S_grp_val;
-			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo);
+			   O_grp_match_res = RegexpUtils.FO_match(S_archinfo, P_archinfo.O_patt);
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
 				  S_pn_archive = AS_numbered_groups[1];
@@ -286,12 +287,12 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			if (StringUtils.isBlank(S_line_input)) {
 				continue LOOP_INPUT_LINES;
 			    }
-			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_comment_line);
+			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_comment_line.O_patt);
 			if (O_grp_match_res.I_array_size_f1 >= 1) {
 				continue LOOP_INPUT_LINES;
 			    }
 			if ((E_parsing_state == ParsingState.InterPgk) || (E_parsing_state == ParsingState.Init)) {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_pkg_hdr);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_pkg_hdr.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
 				   if (E_parsing_state == ParsingState.InterPgk) {
 					   O_retval_setup_ini_contents.FV_add(
@@ -321,7 +322,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			        }
 			     }
 			else if (E_parsing_state == ParsingState.PkgName) {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_sdesc);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_sdesc.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
 					S_description_short = O_grp_match_res.HS_named_groups.get(DESCRIPTION_SHORT).S_grp_val;
 					E_parsing_state = ParsingState.Sdesc;
@@ -330,7 +331,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			        }
 		     }
 			else if (E_parsing_state == ParsingState.Sdesc) {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc.O_patt);
 				SB_description_long = new StringBuilder();
 				if (O_grp_match_res.I_map_size_f1 >= 2) {
 				   S_description_long = O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_grp_val;	
@@ -347,7 +348,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				}
 			}
 			else if (E_parsing_state == ParsingState.LdescCont)  {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc_cont);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_ldesc_cont.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 2) {
 					S_description_long_part =  O_grp_match_res.HS_named_groups.get(DESCRIPTION_LONG).S_grp_val;
 					
@@ -363,7 +364,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				}
 			}
 			else if (E_parsing_state == ParsingState.Ldesc) {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_category);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_category.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
 				   S_category = O_grp_match_res.HS_named_groups.get(CATEGORY).S_grp_val;
 				   AS_category = S_category.split("\\s+");
@@ -371,7 +372,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				   }
 			    }
 			else if (E_parsing_state == ParsingState.Category)  {
-				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_requires);
+				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_requires.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
 				   S_requires = O_grp_match_res.HS_named_groups.get(REQUIRES).S_grp_val;
 				   AS_requires = S_requires.split("\\s+");
