@@ -171,7 +171,7 @@ private static String FS_get_site_root(
     	                      O_site_current.E_protocol.getName().toLowerCase()  + "_" + 
     			              O_site_current.S_site + "_" + 
     			              S_time_stamp + ".";
-    	S_bn_categories_log =   S_bntd_categories + "log";
+    	S_bn_categories_log =  S_bntd_categories + "log";
     	S_pna_categories_log = S_dna_catgegory_logs   + "\\" + S_bn_categories_log;
     	F_pna_categories_log = new File(S_pna_categories_log);
     	

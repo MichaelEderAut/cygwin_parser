@@ -14,16 +14,17 @@ import org.apache.commons.lang3.mutable.*;
 import com.github.michaelederaut.basics.EnumReflectionUtils;
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile;
 import com.github.michaelederaut.basics.RegexpUtils;
+import com.github.michaelederaut.basics.StreamUtils;
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile.ReadLinePolicy;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 
 public class IniFileParser {
 	
-private static final String PKG_NAME          = "pkg_name";
+private static final String PKG_NAME          = "pkgname";
 private static final String DESCRIPTION_SHORT = "sdesc";
 private static final String DESCRIPTION_LONG  = "ldesc";
-private static final String CLOSING_QUOTE     = "closing_quote";
+private static final String CLOSING_QUOTE     = "closingquote";
 private static final String CATEGORY          = "category";
 private static final String REQUIRES          = "requires";
 private static final String VERSION           = "version";
@@ -33,35 +34,43 @@ private static final String SOURCE            = "source";
 private static final String S_re_comment_line = "^\\#.*$";
 private static final NamedPattern P_comment_line =  NamedPattern.FO_compile(S_re_comment_line);
 
-private static final String S_re_pkg_hdr = "^@\\s+({" + PKG_NAME + "}[A-Za-z0-9._+\\-]+)\\s*$";
+// private static final String S_re_pkg_hdr = "^@\\s+({" + PKG_NAME + "}[A-Za-z0-9._+\\-]+)\\s*$";
+private static final String S_re_pkg_hdr = "^@\\s+(?<" + PKG_NAME + ">[A-Za-z0-9._+\\-]+)\\s*$";
 private static final NamedPattern P_pkg_hdr = NamedPattern.FO_compile(S_re_pkg_hdr);
 
-private static final String S_re_sdesc = "^" + DESCRIPTION_SHORT + "\\:\\s+\"({" + DESCRIPTION_SHORT + "}[^\"]*?)\"$";
+// private static final String S_re_sdesc = "^" + DESCRIPTION_SHORT + "\\:\\s+\"({" + DESCRIPTION_SHORT + "}[^\"]*?)\"$";
+private static final String S_re_sdesc = "^" + DESCRIPTION_SHORT + "\\:\\s+\"(?<" + DESCRIPTION_SHORT + ">[^\"]*?)\"$";
 private static final NamedPattern P_sdesc =  NamedPattern.FO_compile(S_re_sdesc);
 
-private static final String S_re_ldesc = "^" + DESCRIPTION_LONG + "\\:\\s+\"({" + DESCRIPTION_LONG +   "}[^\"]*?)({" + CLOSING_QUOTE + "}\")?$";
+// private static final String S_re_ldesc = "^" + DESCRIPTION_LONG + "\\:\\s+\"({" + DESCRIPTION_LONG + "}[^\"]*?)({" + CLOSING_QUOTE + "}\")?$";
+private static final String S_re_ldesc = "^" + DESCRIPTION_LONG + "\\:\\s+\"(?<" + DESCRIPTION_LONG +  ">[^\"]*?)(?<" + CLOSING_QUOTE + ">\")?$";
 private static final NamedPattern P_ldesc =  NamedPattern.FO_compile(S_re_ldesc);
 
-private static final String S_re_ldesc_cont    = "^({" + DESCRIPTION_LONG + "}[^\"]*?)({" + CLOSING_QUOTE + "}\")?$";
+// private static final String S_re_ldesc_cont    = "^({" + DESCRIPTION_LONG + "}[^\"]*?)({" + CLOSING_QUOTE + "}\")?$";
+private static final String S_re_ldesc_cont    = "^(?<" + DESCRIPTION_LONG + ">[^\"]*?)(?<" + CLOSING_QUOTE + ">\")?$";
 private static final NamedPattern P_ldesc_cont = NamedPattern.FO_compile(S_re_ldesc_cont);
 
-private static final String S_re_catgegory = "^" + CATEGORY + "\\:\\s+({" + CATEGORY + "}[a-zA-Z0-9._+\\-]+)\\s*$";
+// private static final String S_re_catgegory = "^" + CATEGORY + "\\:\\s+({" + CATEGORY + "}[a-zA-Z0-9._+\\-]+)\\s*$";
+private static final String S_re_catgegory = "^" + CATEGORY + "\\:\\s+(?<" + CATEGORY + ">[a-zA-Z0-9._+\\-]+)\\s*$";
 static final NamedPattern   P_category     =  NamedPattern.FO_compile(S_re_catgegory);
 
-private static final String S_re_requires = "^" + REQUIRES + "\\:\\s+({" + REQUIRES + "}[^\"]*?)$";
+// private static final String S_re_requires = "^" + REQUIRES + "\\:\\s+({" + REQUIRES + "}[^\"]*?)$";
+private static final String S_re_requires = "^" + REQUIRES + "\\:\\s+(?<" + REQUIRES + ">[^\"]*?)$";
 private static final NamedPattern P_requires =  NamedPattern.FO_compile(S_re_requires);
 
-private static final String S_re_version = "^" + VERSION + "\\:\\s+({" + VERSION + "}[a-zA-Z0-9._+\\-]+)\\s*$";
+// private static final String S_re_version = "^" + VERSION + "\\:\\s+({" + VERSION + "}[a-zA-Z0-9._+\\-]+)\\s*$";
+private static final String S_re_version = "^" + VERSION + "\\:\\s+(?<" + VERSION + ">[a-zA-Z0-9._+\\-]+)\\s*$";
 static final NamedPattern   P_version    =  NamedPattern.FO_compile(S_re_version);
 
 private static final String S_re_archinfo = "^([a-zA-Z0-9._+\\-/]+)\\s+(\\d+)\\s+(\\p{XDigit}{128})$";
 static final NamedPattern   P_archinfo    =  NamedPattern.FO_compile(S_re_archinfo);
 
-// private static final String S_re_install = "^" + INSTALL + "\\:\\s+({" + INSTALL + "}[^\"\\s]*?)$";
-private static final String S_re_install = "^" + INSTALL + "\\:\\s+({" + INSTALL + "}[^\"]*?)$";
+// private static final String S_re_install = "^" + INSTALL + "\\:\\s+({" + INSTALL + "}[^\"]*?)$";
+private static final String S_re_install = "^" + INSTALL + "\\:\\s+(?<" + INSTALL + ">[^\"]*?)$";
 private static final NamedPattern P_install =  NamedPattern.FO_compile(S_re_install);
 
-private static final String S_re_source = "^" + SOURCE + "\\:\\s+({" + SOURCE + "}[^\"]*?)$";
+//private static final String S_re_source = "^" + SOURCE + "\\:\\s+({" + SOURCE + "}[^\"]*?)$";
+private static final String S_re_source = "^" + SOURCE + "\\:\\s+(?<" + SOURCE + ">[^\"]*?)$";
 private static final NamedPattern P_source =  NamedPattern.FO_compile(S_re_source);
 
 private static final String PREV_MARKER = "[prev]";
@@ -110,7 +119,7 @@ private static class MutableParsingState  extends MutableObject<ParsingState> {
 
 private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 		final LineNbrRandomAccessFile    PB_O_buff_reader,
-		final MutableParsingState PB_OM_parsing_state) {
+		final MutableParsingState        PB_OM_parsing_state) {
 	
 	RuntimeException                 E_rt;
 	AssertionError                   E_assert;
@@ -120,7 +129,7 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 	GroupMatchResult                 O_grp_match_res;
 	SetupIniContents.ArchInfo        O_install, O_src;
 	SetupIniContents.PckgVersionInfo O_retval_pck_vers_info;
-	String                           S_msg_1, S_msg_2, S_line_input, 
+	String                           S_msg_1, S_msg_2, S_line_input, S_pna_inp,
 	                                 S_version, S_pn_archive, S_size, S_chk_sum,
 	                                 S_archinfo,  AS_numbered_groups[];
 	int                              I_line_nbr_f1, I_offs_f1;
@@ -131,6 +140,10 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 	S_version = null;
 	O_install = null;
 	O_src     = null;
+	
+	S_pna_inp = PB_O_buff_reader.S_pn;
+//	S_msg_1 = "Now reading lines from file: \"" + S_pna_inp + "\"";
+//	System.out.println(S_msg_1);
 	
 	S_line_input = PB_O_buff_reader.FS_re_read_line();
 	I_line_nbr_f1 = PB_O_buff_reader.I_curr_line_nbr;
@@ -192,7 +205,7 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 			S_line_input = PB_O_buff_reader.FS_readLine();
 			I_line_nbr_f1 = PB_O_buff_reader.I_curr_line_nbr;
 		} catch (RuntimeException PI_E_rt) {
-		      S_msg_1 = "Error reading input file at line: " + I_line_nbr_f1;
+		      S_msg_1 = "Error reading input file \"" + PB_O_buff_reader.S_pn + "\" at line: " + I_line_nbr_f1;
 		      E_rt = new RuntimeException(S_msg_1, PI_E_rt);
 		  throw E_rt;
 		  }
@@ -221,7 +234,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 		
 		int I_line_nbr_f1, I_line_nbr_of_pckg_start_f1;
 		StringBuilder SB_description_long;
-		String S_msg_1, S_msg_2, S_line_input,
+		String S_msg_1, S_msg_2, S_pna_inp, S_line_input,
 		S_pckg_name, S_description_short, S_description_long, S_description_long_part, S_closing_quote, 
 		S_category, AS_category[], S_requires, AS_requires[];
 		ReadLinePolicy E_read_line_policy;
@@ -243,6 +256,10 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 		S_line_input                = null;
 		E_read_line_policy          = ReadLinePolicy.ReadNext;
 		
+		S_pna_inp = PI_O_buff_reader.S_pn;
+		S_msg_1 = "Now reading lines from file: \'" + S_pna_inp + "\'";
+	    System.out.println(S_msg_1);
+		
 		LOOP_INPUT_LINES: while (E_parsing_state.ordinal() < I_parsing_state_finished) {
 			I_line_nbr_f1 = PI_O_buff_reader.I_curr_line_nbr;
 			switch (E_read_line_policy) {
@@ -256,7 +273,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 						throw E_rt;
 					    }
 					break;
-					case ReRead: 
+				case ReRead: 
 						try {
 							S_line_input = PI_O_buff_reader.FS_re_read_line();
 							I_line_nbr_f1 = PI_O_buff_reader.I_curr_line_nbr;
@@ -265,14 +282,14 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 							E_rt = new RuntimeException(S_msg_1, PI_E_rt);
 							throw E_rt;
 						    }
-					case SkipRead:
+				case SkipRead:
 						E_read_line_policy = ReadLinePolicy.ReadNext;
 						break;
 			}
 			if (S_line_input == null) {
 				E_parsing_state = ParsingState.Finished;
 				   O_retval_setup_ini_contents.FV_add(
-						   S_pckg_name,
+						    S_pckg_name,
 							S_description_short,
 							S_description_long,
 							AS_category,
