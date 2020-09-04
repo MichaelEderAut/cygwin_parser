@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.michaelederaut.basics.UrlProtocolUtils;
 import com.googlecode.vfsjfilechooser2.accessories.connection.Protocol;
 
+
 public class SetupConfigContents {
 	
 	public static final String S_encoding = java.nio.charset.StandardCharsets.UTF_8.toString();
@@ -63,12 +64,11 @@ public class SetupConfigContents {
 		this.E_protocol            = UrlProtocolUtils.FE_get_protocol(this.O_url_download_source);
 	    }
 	}
+	
 	public String S_pna_last_cache;
 	public List<Site> AO_mirror_list;
 //	protected String S_pna_last_mirror;
 	public int I_idx_last_mirror_f0 = -1;
 	public String S_url_last_mirror;
-	
-	
 	
 }

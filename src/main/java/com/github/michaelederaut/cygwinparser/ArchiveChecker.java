@@ -54,13 +54,15 @@ public class ArchiveChecker {
 	protected enum ArchPurpose {install, source};
 	
 	protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.sizeOk.ordinal();
+	// protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.exists.ordinal();
+	
 	protected static final int I_min_nbr_archive_fn_parts = 4;
 	protected static final String S_archive_suffixes = "xz|bz2";
 	protected static final String S_re_pckg_install = "^\\-(\\S+?)\\.(tar\\.("       + S_archive_suffixes + "))$";
 	protected static final String S_re_pckg_src     = "^\\-(\\S+?)\\-(src\\.tar\\.(" + S_archive_suffixes + "))$";
 	protected static final NamedPattern P_pckg_install = new NamedPattern(S_re_pckg_install);
 	protected static final NamedPattern P_pckg_src = new NamedPattern(S_re_pckg_src);
-	protected static final String S_work_sheet_name = "incomplete categories";
+	protected static final String S_work_sheet_name = "install incomplete";
 	protected static final String AS_header_row[] = 
 			new String[] {"Name" , 
 					  "expected version", 
@@ -79,14 +81,14 @@ public class ArchiveChecker {
 	
 	public String S_dna_cygw_repository_root;
 	
-	protected class PckgNameFilter2 {
+	protected class PckgNameFilter {
 		
 		public String S_prefix;
 	    public ArchPurpose E_arch_purpose;
 	    public NamedPattern P_tail;
 	    public Stack<String> AS_versions;
 			  
-	    protected PckgNameFilter2(
+	    protected PckgNameFilter(
 				final String PI_S_prefix,
 				final ArchPurpose PI_E_arch_purpose) {
 			
@@ -99,10 +101,10 @@ public class ArchiveChecker {
 			   this.P_tail = P_pckg_src;
 			    }
 			this.AS_versions = new Stack<String>();
-		}	
+		    }	
 	    
 	    
-	   	public BiPredicate<Path, BasicFileAttributes>  F_B_is_regular =
+	   	public BiPredicate<Path, BasicFileAttributes> FB_is_regular =
         		  (Path PI_O_path,  BasicFileAttributes PI_attrs) ->   {
         			  
         	 GroupMatchResult O_grp_match_result;		  
@@ -117,7 +119,6 @@ public class ArchiveChecker {
         	     }
         	 P_bn = PI_O_path.getFileName();
         	 S_bn = P_bn.toString();
-        //	 S_pn = PI_O_path.toString();
         	  
              if (!S_bn.startsWith(this.S_prefix)) {
             	return B_retval;
@@ -139,57 +140,8 @@ public class ArchiveChecker {
 	          return B_retval;
 	    };
 	}
-//----------------------		
 	
-	class PckgNameFilter implements FilenameFilter {
-		
-		public String S_prefix;
-	    public ArchPurpose E_arch_purpose;
-	    public NamedPattern P_tail;
-	    public Stack<String> AS_versions;
-	
-		protected PckgNameFilter(
-				final String PI_S_prefix,
-				final ArchPurpose PI_E_arch_purpose) {
-			
-			this.S_prefix = PI_S_prefix;
-			this.E_arch_purpose = PI_E_arch_purpose;
-			if (PI_E_arch_purpose == ArchPurpose.install) {
-			   this.P_tail = P_pckg_install;	
-			   }
-			else {
-			   this.P_tail = P_pckg_src;
-			    }
-			this.AS_versions = new Stack<String>();
-		}
-	    
-		@Override
-		public boolean accept(final File PI_F_parent, final String PI_S_bn) {
-			
-			GroupMatchResult O_grp_match_result;
-			String S_suffix, S_tail, S_version;
-			int I_len_prefix;
-			
-			boolean B_retval = false;
-			
-			if (PI_S_bn.startsWith(S_prefix)) {
-			    I_len_prefix = S_prefix.length();
-			    S_suffix = PI_S_bn.substring(I_len_prefix);  
-			    O_grp_match_result = RegexpUtils.FO_match(S_suffix, this.P_tail.O_patt);
-			    if (O_grp_match_result.I_array_size_f1 >=4) {
-			       S_version = O_grp_match_result.AS_numbered_groups[1];
-			       if (this.E_arch_purpose == ArchPurpose.install) {
-			    	  if (S_version.endsWith("-src")) {
-			    		   return B_retval;
-			    	       }
-			            }
-			       this.AS_versions.push(S_version);
-			       B_retval = true;
-			       }
-			    }
-			return  B_retval;
-		}
-	}
+//----------------------
 	
 	protected static class ArchPurposeContents {
 		SetupIniContents.ArchInfo.DlStatus E_dl_status;
@@ -254,12 +206,12 @@ public class ArchiveChecker {
 		  NamedPattern P_pckg;
 		  GroupMatchResult O_grp_match_result;
 		  PckgNameFilter   O_file_filter;
-		  PckgNameFilter2   O_file_filter_2;
-		  List<String> AS_vers_prev;
+		  List<String> AS_vers_prev, AS_bn_prev;
+		  Object AO_bn_prev[];
 		  
 		  String S_msg_1, S_msg_2, S_pna_archive, S_pnr_archive, S_pckg_name, S_bn_archive_requested, 
-		         S_version_requested, S_bn_tail, S_bn_suffix, S_arch_type,
-		          AS_archive_pnr_parts[],  AS_bn_prev[], S_vers_prev;  
+		         S_version_received, S_bn_tail, S_bn_suffix, S_arch_type,
+		          AS_archive_pnr_parts[], /* AS_bn_prev[], */ S_vers_prev;  
 	      int I_retval_nbr_checked_archives, I_nbr_archive_fn_parts_f1, I_idx_pckg_name_f0, I_idx_bn_archive_f0, I_len_dnr_pckg_f1, I_nbr_prev_versions_f1;
 	      long L_size_actual, L_size_expected;
 	      
@@ -276,8 +228,32 @@ public class ArchiveChecker {
 	         
 	      I_retval_nbr_checked_archives = 0;
 	      S_pnr_archive = PB_O_arch_info.S_pnr_archive;
-	      PB_O_arch_info.S_prv_ver = null;
+	      PB_O_arch_info.S_ver_locally_stored = null;
 	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
+	      
+	      AS_archive_pnr_parts = S_pnr_archive.split("/");
+	      I_nbr_archive_fn_parts_f1 = ArrayUtils.getLength(AS_archive_pnr_parts);
+	      if (I_nbr_archive_fn_parts_f1 < I_min_nbr_archive_fn_parts) {
+	    	 S_msg_1 = "Pathname \"" + S_pna_archive + "\" doesnt have the minimun required " + I_min_nbr_archive_fn_parts + " parts.";
+	    	 E_assert = new AssertionError(S_msg_1);
+	    	 S_msg_2 = "Unable to determine package name from package indexed " + PI_I_pckg_nr_f0;
+	    	 E_rt = new RuntimeException(S_msg_2, E_assert);
+	    	 throw E_rt;
+	    	 }
+	      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
+	      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
+	      S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
+	      S_bn_archive_requested = AS_archive_pnr_parts[I_idx_bn_archive_f0];
+	      I_len_dnr_pckg_f1 = S_pckg_name.length();
+	      S_bn_tail = S_bn_archive_requested.substring(I_len_dnr_pckg_f1);
+	      if (PI_E_purpose == ArchPurpose.install) {
+	         P_pckg = P_pckg_install;
+	    	       }
+	      else {
+	    	   P_pckg = P_pckg_src;
+	    	   }
+	      O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg.O_patt);     
+	    	    
 	      F_pna_archive = new File(S_pna_archive);
 	      if (F_pna_archive.exists()) {
 	    	  I_retval_nbr_checked_archives = 1;   
@@ -285,53 +261,31 @@ public class ArchiveChecker {
 	          }
 	      else {  
 	         if (PI_E_ver == PckgVersion.current) { // check if there are (previous/other) versions of this archive in the same folder
-	    	    AS_archive_pnr_parts = S_pnr_archive.split("/");
-	    	    I_nbr_archive_fn_parts_f1 = ArrayUtils.getLength(AS_archive_pnr_parts);
-	    	    if (I_nbr_archive_fn_parts_f1 < I_min_nbr_archive_fn_parts) {
-	    		   S_msg_1 = "Pathname \"" + S_pna_archive + "\" doesnt have the minimun required " + I_min_nbr_archive_fn_parts + " parts.";
-	    		   E_assert = new AssertionError(S_msg_1);
-	    		   S_msg_2 = "Unable to determine package name from package indexed " + PI_I_pckg_nr_f0;
-	    		   E_rt = new RuntimeException(S_msg_2, E_assert);
-	    		   throw E_rt;
-	    	       }
-	    	    I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
-	    	    I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
-	    	    S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
-	    	    S_bn_archive_requested = AS_archive_pnr_parts[I_idx_bn_archive_f0];
-	    	    I_len_dnr_pckg_f1 = S_pckg_name.length();
-	    	    S_bn_tail = S_bn_archive_requested.substring(I_len_dnr_pckg_f1);
-	    	    if (PI_E_purpose == ArchPurpose.install) {
-	    		   P_pckg = P_pckg_install;
-	    	       }
-	    	    else {
-	    		   P_pckg = P_pckg_src; 
-	    	       }
-	    	    O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg.O_patt); 
 	    	    if (O_grp_match_result.I_array_size_f1 >= 4) {
-	    		   S_version_requested = O_grp_match_result.AS_numbered_groups[1];
+	    		   S_version_received = O_grp_match_result.AS_numbered_groups[1];
 	    		   S_bn_suffix         = O_grp_match_result.AS_numbered_groups[2];
 	    		   S_arch_type         = O_grp_match_result.AS_numbered_groups[3];
-	    		   O_file_filter = new PckgNameFilter(S_pckg_name, PI_E_purpose);
-	    		   O_file_filter_2 =  new PckgNameFilter2(S_pckg_name, PI_E_purpose);
+	//    		   O_file_filter = new PckgNameFilter(S_pckg_name, PI_E_purpose);
+	    		   O_file_filter =  new PckgNameFilter(S_pckg_name, PI_E_purpose);
 	    		  
 	    		  F_dna_archives = F_pna_archive.getParentFile();
 	    		  if (F_dna_archives.isDirectory()) {
 	    			  // https://stackoverflow.com/questions/2056221/recursively-list-files-in-java
 	    			  FP_dna_archives = Paths.get(F_dna_archives.getAbsolutePath());
 	    			  try {
-						AS_bn_prev = (String[])Files.find(FP_dna_archives, 3, F_B_is_regular).collect(Collectors.toList()).toArray();
+						AO_bn_prev = Files.find(FP_dna_archives, 3, O_file_filter.FB_is_regular).collect(Collectors.toList()).toArray();
 					} catch (IOException|ClassCastException PI_E_io) {
 						S_msg_1 = "Unable to find archives under \"" + F_dna_archives.getAbsolutePath();
 						E_rt = new RuntimeException(S_msg_1, PI_E_io);
 						throw E_rt;
-				
+					}
 		    		//  AS_bn_prev = F_dna_archives.list(O_file_filter);
-		    		  I_nbr_prev_versions_f1 =  AS_bn_prev.length;
-		    		  if (I_nbr_prev_versions_f1 > 0) {
+		    		I_nbr_prev_versions_f1 =  AO_bn_prev.length;
+		    		if (I_nbr_prev_versions_f1 > 0) {
 		    			 AS_vers_prev = O_file_filter.AS_versions;
 		    			 S_vers_prev = AS_vers_prev.get(0);
 		    		     PB_O_arch_info.E_dl_status = DlStatus.prev;
-		    		     PB_O_arch_info.S_prv_ver =  S_vers_prev;
+		    		     PB_O_arch_info.S_ver_locally_stored =  S_vers_prev;
 		    		     return I_retval_nbr_checked_archives;
 		    	         }
 	    		      }
@@ -341,7 +295,11 @@ public class ArchiveChecker {
 	      
 	      if (F_pna_archive.isFile()) {
 	    	  I_retval_nbr_checked_archives = 1;   
-	    	  PB_O_arch_info.E_dl_status = DlStatus.isFile; 
+	    	  PB_O_arch_info.E_dl_status = DlStatus.isFile;
+	    	  if (O_grp_match_result.I_array_size_f1 >= 4) {
+	    		 S_version_received = O_grp_match_result.AS_numbered_groups[1];
+	    		 PB_O_arch_info.S_ver_locally_stored = S_version_received;
+	    	     }
 	          }
 	      else {
 	    	  return I_retval_nbr_checked_archives;
@@ -534,13 +492,13 @@ public class ArchiveChecker {
 		 ArchPurposeContents               O_arch_purpose_contents_src, O_arch_purpose_contents_install, 
 		                                   AO_arch_purpose_contents[];
 		 
-		 File               F_pnr_archive;
-	     String             S_msg_1, S_msg_2, S_outline_c, S_outline_f, 
-	                         S_version_current, S_hyperlink_txt, S_hyperlink_destination, S_pnr_archive, S_dnr_archive, S_prv_ver,
-	                         S_cell_header;
-	     StrBuilder         SB_outline_f;
-	     boolean            B_msg_install;
-	     int                i1, I_line_nbr_f1, I_nbr_lines_written_f1, I_min_lvl_package, I_min_lvl_category, I_dl_lvl_install, I_dl_lvl_src, I_pos_on_stack_f0;
+		 File           F_pnr_archive;
+	     String         S_msg_1, S_msg_2, S_outline_c, S_outline_f, 
+	                    S_version_current, S_hyperlink_txt, S_hyperlink_destination, S_pnr_archive, S_dnr_archive, S_prv_ver,
+	                    S_cell_header;
+	     StrBuilder     SB_outline_f;
+	     boolean        B_msg_install;
+	     int            i1, I_line_nbr_f1, I_nbr_lines_written_f1, I_min_lvl_package, I_min_lvl_category, I_dl_lvl_install, I_dl_lvl_src, I_pos_on_stack_f0;
 	   
 	    O_wb = new XSSFWorkbook();
 	    O_font_bold = O_wb.createFont();
@@ -632,11 +590,11 @@ public class ArchiveChecker {
 					 if (I_dl_lvl_install < I_min_lvl_package) {
 						 I_min_lvl_package = I_dl_lvl_install; 
 					     }
-					 if (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT) {
+				//	 if (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT) {
 		  			    SB_outline_f.append(" install");
 						if (I_dl_lvl_install == ArchInfo.I_dl_status_prev) {
-							SB_outline_f.append("(" + O_arch_info_install.S_prv_ver + ")");
-							S_prv_ver = O_arch_info_install.S_prv_ver;
+							SB_outline_f.append("(" + O_arch_info_install.S_ver_locally_stored + ")");
+							S_prv_ver = O_arch_info_install.S_ver_locally_stored;
 						    }
 						else {
 							SB_outline_f.append(" " + O_arch_info_install.E_dl_status.name());
@@ -654,7 +612,7 @@ public class ArchiveChecker {
 					    		    S_hyperlink_txt,
 					    		    S_hyperlink_destination);
 						B_msg_install = true;
-					    }
+					//    }  (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT)
 				     }
 				     
 				 O_arch_info_src             = O_pckg_vers_info.O_src;
@@ -671,8 +629,8 @@ public class ArchiveChecker {
 						    }
 						SB_outline_f.append(" src");
 						if (I_dl_lvl_src == ArchInfo.I_dl_status_prev) {
-							SB_outline_f.append("(" + O_arch_info_src.S_prv_ver + ")");
-							S_prv_ver = O_arch_info_src.S_prv_ver;
+							SB_outline_f.append("(" + O_arch_info_src.S_ver_locally_stored + ")");
+							S_prv_ver = O_arch_info_src.S_ver_locally_stored;
 						    }
 						else {
 							SB_outline_f.append(" " + O_arch_info_src.E_dl_status.name());

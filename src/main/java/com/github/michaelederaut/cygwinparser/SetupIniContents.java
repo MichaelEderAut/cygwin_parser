@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile;
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile.Line;
-import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
+// import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -22,19 +22,54 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class SetupIniContents {
 	
+	public static class PkgArchInfos {
+	     public String     S_pnr_archive;
+	     public ArchInfo AO_archinfos[];
+	     
+	 public PkgArchInfos(
+			 final String PI_S_pnr_archive,
+			 final String AO_archinfos[]) {
+		 
+		IllegalArgumentException E_ill_arg;
+		RuntimeException E_rt;
+		String S_msg_1, S_msg_2;
+		 int I_nbr_compl_categories_f1;
+		 
+		 S_msg_1 = null;
+		  if (StringUtils.isBlank(PI_S_pnr_archive)) {
+		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
+		     }
+		  else if (AO_archinfos == null) {
+			 S_msg_1 = "Archive infos must not be null";
+		     }
+		  else {
+			I_nbr_compl_categories_f1 = AO_archinfos.length;
+			if ((I_nbr_compl_categories_f1 < 1) || (I_nbr_compl_categories_f1 > ArchiveChecker.I_nbr_compl_categories)) {
+			   S_msg_1 = "Number of archive infos: " + I_nbr_compl_categories_f1 + " not between 1 and " + ArchiveChecker.I_nbr_compl_categories + ".";
+			   }
+		    }
+		  if (S_msg_1 != null) {
+		     E_ill_arg = new IllegalArgumentException(S_msg_1);
+		     S_msg_2 = "Instantiation of object of type: \'" + PkgArchInfos.class.getName() + "\' failed.";
+		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
+		     throw E_rt;
+			 }
+	     }
+	}
+	
 	public static class ArchInfo {
 		
-		public enum DlStatus {unknown, notFound, prev, exists, isFile, sizeOk, hashOk}
+		public enum DlStatus {unknown, notFound, prev, exists, isFile, sizeOk, hashOk};
 		
 		public static final int I_dl_status_prev = DlStatus.prev.ordinal();
-		public String     S_pnr_archive;
+		
 		public int        I_size;
 		public BigInteger O_hash_val;
 	    public DlStatus   E_dl_status = DlStatus.unknown;
-	    public String     S_prv_ver;
+	    public String     S_ver_locally_stored;
 	
 	public ArchInfo (
-			final String PI_S_pnr_archive,
+		//	final String PI_S_pnr_archive,
 			final String PI_S_size,
 			final String PI_S_hash_val) {
 		
@@ -43,23 +78,20 @@ public class SetupIniContents {
 		String S_msg_1, S_msg_2;
 		
 		S_msg_1 = null;
-		if (StringUtils.isBlank(PI_S_pnr_archive)) {
-		   S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
-		     }
-		else if (StringUtils.isBlank(PI_S_size)) {
+		if (StringUtils.isBlank(PI_S_size)) {
 		   S_msg_1 = "Archive-size-string \'" + PI_S_size + "\' must not be null or blank"; 
 	       }
 		else if (StringUtils.isBlank(PI_S_hash_val)) {
 		   S_msg_1 = "Archive-hash-string \'" + PI_S_size + "\' must not be null or blank"; 
 		   }
-		 if (S_msg_1 != null) {
+		if (S_msg_1 != null) {
 		         E_ill_arg = new IllegalArgumentException(S_msg_1);
 		         S_msg_2 = "Instantiation of object of type: \'" + ArchInfo.class.getName() + "\' failed.";
 		         E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
 		         throw E_rt;
 			     }
 		
-		this.S_pnr_archive = PI_S_pnr_archive;
+	//	this.S_pnr_archive = PI_S_pnr_archive;
 		try {
 			this.I_size = Integer.parseInt(PI_S_size);
 		} catch (NumberFormatException PI_E_nf) {
@@ -215,9 +247,10 @@ public static class PckgInfo  {
 			PI_AS_requires,
 			PI_O_version_current,
 			PI_O_version_prev);
-			   }
-	    
-	
+		   
+		    return;
+		    }
+
 public PckgInfo ( 
 		  final String PI_S_name,
 		  final String PI_S_sdesc,
@@ -301,6 +334,5 @@ public PckgInfo (
     	  }
     	  
     	return;
-    }
-    
+       }
 	}
