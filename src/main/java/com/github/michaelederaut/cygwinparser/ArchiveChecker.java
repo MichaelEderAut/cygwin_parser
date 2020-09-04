@@ -47,12 +47,30 @@ import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo.DlStatus;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgVersionInfo;
+import com.github.michaelederaut.cygwinparser.SetupIniContents.PkgArchInfos;
 
 public class ArchiveChecker {
 
 	protected enum PckgVersion {current, prev} ;
 	protected enum ArchPurpose {install, source};
 	
+
+	public enum CompletionCategory {
+			
+			incompleteInstall("install-incomplete"), // no valid installation archive found
+			completeInstall("install-complete"), // valid installation archive found but no valid source archive 
+	   	//  incompleteSrc("source-incomplete");
+			completeSrc("source-complete"); // valid installation archive  
+		 
+			public static final String PREFIX = "by-category_";
+			public String S_description;
+			
+			CompletionCategory(final String PI_S_description) {
+				this.S_description = PREFIX + PI_S_description;
+			}
+		}; 
+	
+    public static final int I_nbr_compl_categories = CompletionCategory.values().length;
 	protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.sizeOk.ordinal();
 	// protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.exists.ordinal();
 	
@@ -191,9 +209,11 @@ public class ArchiveChecker {
 		this.S_dna_cygw_repository_root = PI_S_dna_cygw_repository_root;
 	    }
 	
-	protected int FI_check_pckg_archive(
+	protected int FI_check_pckg_archives(
 			  final String          PI_S_dnr_site,
-			  final ArchInfo        PB_O_arch_info,
+			//  final ArchInfo       PB_O_arch_info,
+			  final PkgArchInfos    PB_O_pckg_arch_info,
+			 
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver,
 			  final ArchPurpose     PI_E_purpose) {
@@ -227,11 +247,10 @@ public class ArchiveChecker {
 	    		  };  
 	         
 	      I_retval_nbr_checked_archives = 0;
-	      S_pnr_archive = PB_O_arch_info.S_pnr_archive;
-	      PB_O_arch_info.S_ver_locally_stored = null;
-	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
 	      
-	      AS_archive_pnr_parts = S_pnr_archive.split("/");
+	      
+	      S_pnr_archive = PB_O_pckg_arch_info.S_pnr_archive;
+	      
 	      I_nbr_archive_fn_parts_f1 = ArrayUtils.getLength(AS_archive_pnr_parts);
 	      if (I_nbr_archive_fn_parts_f1 < I_min_nbr_archive_fn_parts) {
 	    	 S_msg_1 = "Pathname \"" + S_pna_archive + "\" doesnt have the minimun required " + I_min_nbr_archive_fn_parts + " parts.";
@@ -239,7 +258,12 @@ public class ArchiveChecker {
 	    	 S_msg_2 = "Unable to determine package name from package indexed " + PI_I_pckg_nr_f0;
 	    	 E_rt = new RuntimeException(S_msg_2, E_assert);
 	    	 throw E_rt;
+	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
+	      AS_archive_pnr_parts = S_pnr_archive.split("/");
 	    	 }
+	      
+	      // TODO
+	      PB_O_arch_info.S_ver_locally_stored = null;
 	      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
 	      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
 	      S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
@@ -285,7 +309,7 @@ public class ArchiveChecker {
 		    			 AS_vers_prev = O_file_filter.AS_versions;
 		    			 S_vers_prev = AS_vers_prev.get(0);
 		    		     PB_O_arch_info.E_dl_status = DlStatus.prev;
-		    		     PB_O_arch_info.S_ver_locally_stored =  S_vers_prev;
+		    		     PB_O_arch_info.S_ver_locally_stored = S_vers_prev;
 		    		     return I_retval_nbr_checked_archives;
 		    	         }
 	    		      }
@@ -323,16 +347,17 @@ public class ArchiveChecker {
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver) {
 		
-		      ArchInfo  O_archinfo;
+		      ArchInfo  AO_archinfo[];
 		      int I_retval_nbr_checked_archives, I_res_nbr_f1;
+		      
 		      
 		      I_retval_nbr_checked_archives = 0;
 		      
-		      O_archinfo = PI_O_ver_info.O_install;
+		      AO_archinfo = PI_O_ver_info.AO_install;
 		      if (O_archinfo != null) {
 		         I_res_nbr_f1 = FI_check_pckg_archive(
 		    		  PI_S_dnr_site,
-		    		  O_archinfo,
+		    		  AO_archinfo,
 		    		  PI_I_pckg_nr_f0,
 		    		  PI_E_ver,
 		    		  ArchPurpose.install
@@ -590,7 +615,7 @@ public class ArchiveChecker {
 					 if (I_dl_lvl_install < I_min_lvl_package) {
 						 I_min_lvl_package = I_dl_lvl_install; 
 					     }
-				//	 if (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT) {
+					 if (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT) {
 		  			    SB_outline_f.append(" install");
 						if (I_dl_lvl_install == ArchInfo.I_dl_status_prev) {
 							SB_outline_f.append("(" + O_arch_info_install.S_ver_locally_stored + ")");
@@ -612,7 +637,7 @@ public class ArchiveChecker {
 					    		    S_hyperlink_txt,
 					    		    S_hyperlink_destination);
 						B_msg_install = true;
-					//    }  (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT)
+					    } //  (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT)
 				     }
 				     
 				 O_arch_info_src             = O_pckg_vers_info.O_src;
