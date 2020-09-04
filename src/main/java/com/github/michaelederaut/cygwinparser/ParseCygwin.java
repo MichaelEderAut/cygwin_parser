@@ -22,7 +22,6 @@ import java.net.URLEncoder;
 
 // import regexodus.Pattern;
 
-
 public class ParseCygwin {
 
 public static final String S_dnr_x86_64         = "x86_64";
@@ -32,7 +31,7 @@ public static final String S_bn_setup_ini       = "setup.ini";
 public static final String S_bnt_categories_log = "categories";
 
 public static final String S_pna_setup_rc      = "C:\\cygwin64\\etc\\setup\\setup.rc";
-public static final String S_TIME_STAMP        = "yyyy-MM-dd_HH_mm_ss";
+public static final String S_TIME_STAMP        = "yyyy-MM-dd_HH_mm-ss";
 public static final SimpleDateFormat O_timestamp_template = new SimpleDateFormat(S_TIME_STAMP);
 
 private static String FS_get_site_root(
@@ -79,7 +78,8 @@ private static String FS_get_site_root(
     	
     	File F_dna_86_64, F_dna_category_logs, F_pna_setup_ini, F_pna_categories_log,  F_pna_categories_xslx;
     	String S_site_root, S_dnr_site_root, S_dna_cygw_repository_root, S_dna_x86_64, S_dna_catgegory_logs, S_pna_setup_ini, 
-    	S_bntd_categories, S_bn_categories_log, S_bn_categories_xlsx, S_pna_categories_log, S_pna_categories_xlsx, S_time_stamp, S_msg_1, S_msg_2;
+    	S_bntd_categories /* base-name truncated dot */,  
+    	S_bn_categories_log, S_bn_categories_xlsx, S_pna_categories_log, S_pna_categories_xlsx, S_time_stamp, S_msg_1, S_msg_2;
     	
     	long L_timestamp_current;
     	int I_nbr_lines_written_f1, I_flags_dummy, I_idx_mirror_f0;
@@ -119,7 +119,7 @@ private static String FS_get_site_root(
     		S_msg_2 = "Unable to create folder containing the category logs.";
     		E_rt = new RuntimeException(S_msg_2, E_io);
     		throw E_rt;
-    	}
+    	    }
     	
     	if (!F_dna_86_64.isDirectory()) {
     		S_msg_1 = "Unable to locate folder: \'" + S_dna_x86_64 + "\"";

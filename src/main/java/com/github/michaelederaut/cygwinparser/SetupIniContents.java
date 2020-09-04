@@ -31,7 +31,7 @@ public class SetupIniContents {
 		public int        I_size;
 		public BigInteger O_hash_val;
 	    public DlStatus   E_dl_status = DlStatus.unknown;
-	    public String     S_prv_ver;
+	    public String     S_ver_locally_stored;
 	
 	public ArchInfo (
 			final String PI_S_pnr_archive,
@@ -215,9 +215,10 @@ public static class PckgInfo  {
 			PI_AS_requires,
 			PI_O_version_current,
 			PI_O_version_prev);
-			   }
-	    
-	
+		   
+		    return;
+		    }
+
 public PckgInfo ( 
 		  final String PI_S_name,
 		  final String PI_S_sdesc,
@@ -301,6 +302,5 @@ public PckgInfo (
     	  }
     	  
     	return;
-    }
-    
+       }
 	}
