@@ -7,23 +7,19 @@ import java.util.List;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentSkipListMap;
+// import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile;
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile.Line;
-// import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 
 import org.apache.commons.lang3.ArrayUtils;
-
-// import org.hamcrest.*;
-// import org.hamcrest.core.*;
 
 public class SetupIniContents {
 	
 	public static class PkgArchInfos {
-	     public String     S_pnr_archive;
+	     public String   S_pnr_archive;
 	     public ArchInfo AO_archinfos[];
 	     
 	 public PkgArchInfos(
