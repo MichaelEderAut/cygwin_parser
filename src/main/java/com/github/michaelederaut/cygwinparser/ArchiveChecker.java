@@ -47,7 +47,7 @@ import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo.DlStatus;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgVersionInfo;
-import com.github.michaelederaut.cygwinparser.SetupIniContents.PkgArchInfos;
+import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgArchInfos;
 
 public class ArchiveChecker {
 
@@ -212,7 +212,7 @@ public class ArchiveChecker {
 	protected int FI_check_pckg_archives(
 			  final String          PI_S_dnr_site,
 			//  final ArchInfo       PB_O_arch_info,
-			  final PkgArchInfos    PB_O_pckg_arch_info,
+			  final PckgArchInfos    PB_O_pckg_arch_info,
 			 
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver,
@@ -220,6 +220,7 @@ public class ArchiveChecker {
 		
 		  AssertionError E_assert;
 		  RuntimeException E_rt;
+		  
 		  File F_pna_archive, F_dna_archives;
 		  Path FP_dna_archives;
 		  
@@ -228,11 +229,12 @@ public class ArchiveChecker {
 		  PckgNameFilter   O_file_filter;
 		  List<String> AS_vers_prev, AS_bn_prev;
 		  Object AO_bn_prev[];
-		  
+		  ArchInfo O_arch_info;
 		  String S_msg_1, S_msg_2, S_pna_archive, S_pnr_archive, S_pckg_name, S_bn_archive_requested, 
 		         S_version_received, S_bn_tail, S_bn_suffix, S_arch_type,
 		          AS_archive_pnr_parts[], /* AS_bn_prev[], */ S_vers_prev;  
-	      int I_retval_nbr_checked_archives, I_nbr_archive_fn_parts_f1, I_idx_pckg_name_f0, I_idx_bn_archive_f0, I_len_dnr_pckg_f1, I_nbr_prev_versions_f1;
+	      int I_retval_nbr_checked_archives, I_nbr_archive_fn_parts_f1, I_idx_pckg_name_f0, I_idx_bn_archive_f0, 
+	          I_len_dnr_pckg_f1, I_nbr_prev_versions_f1, I_idx_completion_category_f0;
 	      long L_size_actual, L_size_expected;
 	      
 	      final BiPredicate<Path, BasicFileAttributes> F_B_is_regular =
@@ -257,86 +259,93 @@ public class ArchiveChecker {
 	    	 S_msg_2 = "Unable to determine package name from package indexed " + PI_I_pckg_nr_f0;
 	    	 E_rt = new RuntimeException(S_msg_2, E_assert);
 	    	 throw E_rt;
+	    	 }
+	    	 
 	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
 	      AS_archive_pnr_parts = S_pnr_archive.split("/");
-	    	 }
+	    	
 	      
-	      // TODO
-	      PB_O_arch_info.S_ver_locally_stored = null;
-	      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
-	      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
-	      S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
-	      S_bn_archive_requested = AS_archive_pnr_parts[I_idx_bn_archive_f0];
-	      I_len_dnr_pckg_f1 = S_pckg_name.length();
-	      S_bn_tail = S_bn_archive_requested.substring(I_len_dnr_pckg_f1);
-	      if (PI_E_purpose == ArchPurpose.install) {
-	         P_pckg = P_pckg_install;
-	    	       }
-	      else {
-	    	   P_pckg = P_pckg_src;
-	    	   }
-	      O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg.O_patt);     
-	    	    
-	      F_pna_archive = new File(S_pna_archive);
-	      if (F_pna_archive.exists()) {
-	    	  I_retval_nbr_checked_archives = 1;   
-	    	  PB_O_arch_info.E_dl_status = DlStatus.exists; 
-	          }
-	      else {  
-	         if (PI_E_ver == PckgVersion.current) { // check if there are (previous/other) versions of this archive in the same folder
-	    	    if (O_grp_match_result.I_array_size_f1 >= 4) {
-	    		   S_version_received = O_grp_match_result.AS_numbered_groups[1];
-	    		   S_bn_suffix         = O_grp_match_result.AS_numbered_groups[2];
-	    		   S_arch_type         = O_grp_match_result.AS_numbered_groups[3];
-	//    		   O_file_filter = new PckgNameFilter(S_pckg_name, PI_E_purpose);
-	    		   O_file_filter =  new PckgNameFilter(S_pckg_name, PI_E_purpose);
-	    		  
-	    		  F_dna_archives = F_pna_archive.getParentFile();
-	    		  if (F_dna_archives.isDirectory()) {
-	    			  // https://stackoverflow.com/questions/2056221/recursively-list-files-in-java
-	    			  FP_dna_archives = Paths.get(F_dna_archives.getAbsolutePath());
-	    			  try {
-						AO_bn_prev = Files.find(FP_dna_archives, 3, O_file_filter.FB_is_regular).collect(Collectors.toList()).toArray();
-					} catch (IOException|ClassCastException PI_E_io) {
-						S_msg_1 = "Unable to find archives under \"" + F_dna_archives.getAbsolutePath();
-						E_rt = new RuntimeException(S_msg_1, PI_E_io);
-						throw E_rt;
-					}
-		    		//  AS_bn_prev = F_dna_archives.list(O_file_filter);
-		    		I_nbr_prev_versions_f1 =  AO_bn_prev.length;
-		    		if (I_nbr_prev_versions_f1 > 0) {
-		    			 AS_vers_prev = O_file_filter.AS_versions;
-		    			 S_vers_prev = AS_vers_prev.get(0);
-		    		     PB_O_arch_info.E_dl_status = DlStatus.prev;
-		    		     PB_O_arch_info.S_ver_locally_stored = S_vers_prev;
-		    		     return I_retval_nbr_checked_archives;
-		    	         }
-	    		      }
-	    	      }
-	    	    } // END version == current
-	         } // END archive exists
-	      
-	      if (F_pna_archive.isFile()) {
-	    	  I_retval_nbr_checked_archives = 1;   
-	    	  PB_O_arch_info.E_dl_status = DlStatus.isFile;
-	    	  if (O_grp_match_result.I_array_size_f1 >= 4) {
-	    		 S_version_received = O_grp_match_result.AS_numbered_groups[1];
-	    		 PB_O_arch_info.S_ver_locally_stored = S_version_received;
-	    	     }
-	          }
-	      else {
-	    	  return I_retval_nbr_checked_archives;
-	          }
-	      
-	      L_size_actual = F_pna_archive.length();
-	      L_size_expected = PB_O_arch_info.I_size;
-	      if (L_size_actual == L_size_expected) {
-	    	 PB_O_arch_info.E_dl_status = DlStatus.sizeOk; 
-	         }
-	      else {
-	    	  return I_retval_nbr_checked_archives;
-	          }
-	      
+	     LOOP_COMPLETION_CATEGORIES:
+	     for (I_idx_completion_category_f0 = 0; 
+	          I_idx_completion_category_f0 < I_nbr_compl_categories; 
+	    	  I_idx_completion_category_f0++) {
+	    	  
+	          O_arch_info = PB_O_pckg_arch_info.AO_archinfos[I_idx_completion_category_f0];
+		      O_arch_info.S_ver_locally_stored = null;
+		      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
+		      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
+		      S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
+		      S_bn_archive_requested = AS_archive_pnr_parts[I_idx_bn_archive_f0];
+		      I_len_dnr_pckg_f1 = S_pckg_name.length();
+		      S_bn_tail = S_bn_archive_requested.substring(I_len_dnr_pckg_f1);
+		      if (PI_E_purpose == ArchPurpose.install) {
+		         P_pckg = P_pckg_install;
+		    	 }
+		      else {
+		    	 P_pckg = P_pckg_src;
+		    	   }
+		      O_grp_match_result = RegexpUtils.FO_match(S_bn_tail, P_pckg.O_patt);     
+		    	    
+		      F_pna_archive = new File(S_pna_archive);
+		      if (F_pna_archive.exists()) {
+		    	  I_retval_nbr_checked_archives = 1;   
+		    	  O_arch_info.E_dl_status = DlStatus.exists; 
+		          }
+		      else {  
+		         if (PI_E_ver == PckgVersion.current) { // check if there are (previous/other) versions of this archive in the same folder
+		    	    if (O_grp_match_result.I_array_size_f1 >= 4) {
+		    		   S_version_received = O_grp_match_result.AS_numbered_groups[1];
+		    		   S_bn_suffix         = O_grp_match_result.AS_numbered_groups[2];
+		    		   S_arch_type         = O_grp_match_result.AS_numbered_groups[3];
+		//    		   O_file_filter = new PckgNameFilter(S_pckg_name, PI_E_purpose);
+		    		   O_file_filter =  new PckgNameFilter(S_pckg_name, PI_E_purpose);
+		    		  
+		    		  F_dna_archives = F_pna_archive.getParentFile();
+		    		  if (F_dna_archives.isDirectory()) {
+		    			  // https://stackoverflow.com/questions/2056221/recursively-list-files-in-java
+		    			  FP_dna_archives = Paths.get(F_dna_archives.getAbsolutePath());
+		    			  try {
+							AO_bn_prev = Files.find(FP_dna_archives, 3, O_file_filter.FB_is_regular).collect(Collectors.toList()).toArray();
+						} catch (IOException|ClassCastException PI_E_io) {
+							S_msg_1 = "Unable to find archives under \"" + F_dna_archives.getAbsolutePath();
+							E_rt = new RuntimeException(S_msg_1, PI_E_io);
+							throw E_rt;
+						}
+			    		//  AS_bn_prev = F_dna_archives.list(O_file_filter);
+			    		I_nbr_prev_versions_f1 =  AO_bn_prev.length;
+			    		if (I_nbr_prev_versions_f1 > 0) {
+			    			 AS_vers_prev = O_file_filter.AS_versions;
+			    			 S_vers_prev = AS_vers_prev.get(0);
+			    		     PB_O_arch_info.E_dl_status = DlStatus.prev;
+			    		     PB_O_arch_info.S_ver_locally_stored = S_vers_prev;
+			    		     return I_retval_nbr_checked_archives;
+			    	         }
+		    		      }
+		    	      }
+		    	    } // END version == current
+		         } // END archive exists
+		      
+		      if (F_pna_archive.isFile()) {
+		    	  I_retval_nbr_checked_archives = 1;   
+		    	  PB_O_arch_info.E_dl_status = DlStatus.isFile;
+		    	  if (O_grp_match_result.I_array_size_f1 >= 4) {
+		    		 S_version_received = O_grp_match_result.AS_numbered_groups[1];
+		    		 PB_O_arch_info.S_ver_locally_stored = S_version_received;
+		    	     }
+		          }
+		      else {
+		    	  return I_retval_nbr_checked_archives;
+		          }
+		      
+		      L_size_actual = F_pna_archive.length();
+		      L_size_expected = PB_O_arch_info.I_size;
+		      if (L_size_actual == L_size_expected) {
+		    	 PB_O_arch_info.E_dl_status = DlStatus.sizeOk; 
+		         }
+		      else {
+		    	  return I_retval_nbr_checked_archives;
+		          }
+		       } // END LOOP LOOP_COMPLETION_CATEGORIES
 	      return I_retval_nbr_checked_archives;
 	      } 
 	
