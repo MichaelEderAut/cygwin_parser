@@ -17,7 +17,10 @@ import com.github.michaelederaut.basics.RegexpUtils;
 import com.github.michaelederaut.basics.StreamUtils;
 import com.github.michaelederaut.basics.LineNbrRandomAccessFile.ReadLinePolicy;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
+import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgArchInfos;
+import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgVersionInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
+import static com.github.michaelederaut.cygwinparser.ArchiveChecker.I_nbr_compl_categories;
 
 public class IniFileParser {
 	
@@ -127,8 +130,9 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 
 	ParsingState                     E_parsing_state;
 	GroupMatchResult                 O_grp_match_res;
-	SetupIniContents.ArchInfo        O_install, O_src;
-	SetupIniContents.PckgVersionInfo O_retval_pck_vers_info;
+	PckgArchInfos                    O_pckg_arch_infos_install, O_pck_arch_infos_src;
+	ArchInfo                         O_arch_info_install, O_arch_info_src;
+	PckgVersionInfo                  O_retval_pck_vers_info;
 	String                           S_msg_1, S_msg_2, S_line_input, S_pna_inp,
 	                                 S_version, S_pn_archive, S_size, S_chk_sum,
 	                                 S_archinfo,  AS_numbered_groups[];
@@ -138,8 +142,8 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 	E_parsing_state = PB_OM_parsing_state.getValue();
 
 	S_version = null;
-	O_install = null;
-	O_src     = null;
+	O_arch_info_install = null;
+	O_arch_info_src     = null;
 	
 	S_pna_inp = PB_O_buff_reader.S_pn;
 //	S_msg_1 = "Now reading lines from file: \"" + S_pna_inp + "\"";
@@ -178,7 +182,12 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 				  S_pn_archive = AS_numbered_groups[1];
 				  S_size       = AS_numbered_groups[2];
 				  S_chk_sum    = AS_numbered_groups[3];
-				  O_install = new ArchInfo(S_pn_archive, S_size, S_chk_sum);
+				//  ArchInfo[] ao = new ArchInfo[] {null, null}; 
+				  O_pckg_arch_infos_install = new PckgArchInfos(
+						  S_pn_archive, 
+						   new ArchInfo[]{
+							   new ArchInfo(S_size, S_chk_sum)});
+	     		 	 
 				  E_parsing_state = ParsingState.Install;
 			      }
 			   }
@@ -193,7 +202,11 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 				  S_pn_archive = AS_numbered_groups[1];
 				  S_size       = AS_numbered_groups[2];
 				  S_chk_sum    = AS_numbered_groups[3];
-				  O_src = new ArchInfo(S_pn_archive, S_size, S_chk_sum);
+				  O_pck_arch_infos_src =  new PckgArchInfos( 
+						   S_pn_archive, 
+						   new ArchInfo[]{
+							   new ArchInfo(S_size, S_chk_sum)});
+						  
 				  E_parsing_state = ParsingState.Source;
 			      }
 			   }
@@ -211,7 +224,7 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 		  }
 	}   // END while
 	
-	O_retval_pck_vers_info = new SetupIniContents.PckgVersionInfo(S_version, O_install, O_src);
+	O_retval_pck_vers_info = new SetupIniContents.PckgVersionInfo(S_version, O_arch_info_install, O_arch_info_src);
 	I_offs_f1 =  PB_OM_parsing_state.I_offset;
 	if (I_offs_f1 != 0) {
 	   EnumReflectionUtils.FV_modify_ordinal_by(E_parsing_state, I_offs_f1);

@@ -18,13 +18,13 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class SetupIniContents {
 	
-	public static class PkgArchInfos {
+	public static class PckgArchInfos {
 	     public String   S_pnr_archive;
 	     public ArchInfo AO_archinfos[];
 	     
-	 public PkgArchInfos(
+	 public PckgArchInfos(
 			 final String PI_S_pnr_archive,
-			 final String AO_archinfos[]) {
+			 final ArchInfo AO_archinfos[]) {
 		 
 		IllegalArgumentException E_ill_arg;
 		RuntimeException E_rt;
@@ -46,11 +46,25 @@ public class SetupIniContents {
 		    }
 		  if (S_msg_1 != null) {
 		     E_ill_arg = new IllegalArgumentException(S_msg_1);
-		     S_msg_2 = "Instantiation of object of type: \'" + PkgArchInfos.class.getName() + "\' failed.";
+		     S_msg_2 = "Instantiation of object of type: \'" + PckgArchInfos.class.getName() + "\' failed.";
 		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
 		     throw E_rt;
 			 }
 	     }
+	}
+	
+	
+	public static class PckgPosition {
+       int I_line_nbr_f1;
+       int I_pos_on_stack_f0;
+       
+       public PckgPosition (
+           int PI_I_line_nbr_f1,
+           int PI_I_pos_on_stack_f0) {
+       
+    	   this.I_line_nbr_f1     = PI_I_line_nbr_f1;
+    	   this.I_pos_on_stack_f0 = PI_I_pos_on_stack_f0;
+		   }
 	}
 	
 	public static class ArchInfo {
@@ -105,19 +119,6 @@ public class SetupIniContents {
 	return;	
 	     }
 	}  // END of ArchInfo
-	
-	public static class PckgPosition {
-       int I_line_nbr_f1;
-       int I_pos_on_stack_f0;
-       
-       public PckgPosition (
-           int PI_I_line_nbr_f1,
-           int PI_I_pos_on_stack_f0) {
-       
-    	   this.I_line_nbr_f1     = PI_I_line_nbr_f1;
-    	   this.I_pos_on_stack_f0 = PI_I_pos_on_stack_f0;
-		   }
-	}
 	
 	public static class PckgVersionInfo {
 			

@@ -159,10 +159,10 @@ private static String FS_get_site_root(
 			throw E_rt;
 		    }
     	
-    	O_setup_ini_contents = IniFileParser.FO_parse(O_rdr_setup_ini);
+    	O_setup_ini_contents = IniFileParser.FO_parse(O_rdr_setup_ini);      // 1
     	O_rdr_setup_ini.FV_close();
     	O_archive_checker = new ArchiveChecker(S_dna_cygw_repository_root);
-    	O_archive_checker.FI_check_pckgs(S_dnr_site_root, O_setup_ini_contents);
+    	O_archive_checker.FI_check_pckgs(S_dnr_site_root, O_setup_ini_contents);  // 2
     	
     	L_timestamp_current = System.currentTimeMillis();
     	O_timemstamp_current = new Date(L_timestamp_current);		
@@ -188,7 +188,7 @@ private static String FS_get_site_root(
 		}
 
     	O_MI_nbr_lines_written = new MutableInt(0);
-    	O_archive_checker.FV_eval_categories(
+    	O_archive_checker.FV_eval_categories(                     // 3
     			O_fs_out_categories_xslx,
     			S_dnr_site_root,
     			O_setup_ini_contents,
