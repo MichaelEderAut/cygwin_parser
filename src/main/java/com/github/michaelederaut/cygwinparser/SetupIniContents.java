@@ -79,7 +79,6 @@ public class SetupIniContents {
 	    public String     S_ver_locally_stored;
 	
 	public ArchInfo (
-		//	final String PI_S_pnr_archive,
 			final String PI_S_size,
 			final String PI_S_hash_val) {
 		
@@ -119,6 +118,7 @@ public class SetupIniContents {
 	return;	
 	     }
 	}  // END of ArchInfo
+	
 	
 	public static class PckgVersionInfo {
 			
