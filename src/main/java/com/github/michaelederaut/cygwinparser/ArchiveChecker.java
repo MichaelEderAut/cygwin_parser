@@ -54,26 +54,24 @@ public class ArchiveChecker {
 	protected enum PckgVersion {current, prev} ;
 	protected enum ArchPurpose {install, source};
 	
-
 	public enum CompletionDegree {
 			
-			incompleteInstall("install-incomplete"), // no valid installation archive found
-			completeInstall("install-complete"), // valid installation archive found but no valid source archive 
-			completeSrc("source-complete"); // valid installation archive  
-		 
-			public static final String PREFIX = "by-category_";
-			public String S_description;
-			
-			CompletionDegree(final String PI_S_description) {
-				this.S_description = PREFIX + PI_S_description;
-			}
+		incompleteInstall("install-incomplete"), // no valid or only prev installation archive found
+		completeInstall("install-complete"), // valid installation archive found but no valid or only prev source archive found
+		completeSrc("source-complete"); // valid installation archive  
+	 
+		public static final String PREFIX = "by-category_";
+		public String S_description;
+		
+		CompletionDegree(final String PI_S_description) {
+			this.S_description = PREFIX + PI_S_description;
+		    }
 		}; 
 	
-		
     public static final int I_nbr_compl_categories = CompletionDegree.values().length;
     
     public enum PurposeCompletion {
-		notFound, prevOk, currentOk 
+		notFound, unknownVersion, prevOk, currentOk 
 	    };
     
 	public static final int I_nbr_purpose_completion_categories = PurposeCompletion.values().length;
@@ -219,7 +217,7 @@ public class ArchiveChecker {
 	protected int FI_check_pckg_archives(
 			  final String          PI_S_dnr_site,
 			//  final ArchInfo       PB_O_arch_info,
-			  final PckgArchInfos    PB_O_pckg_arch_info,
+			  final PckgArchInfos  PB_O_pckg_arch_infos,
 			 
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver,
@@ -257,8 +255,10 @@ public class ArchiveChecker {
 	         
 	      I_retval_nbr_checked_archives = 0;
 	      
-	      S_pnr_archive = PB_O_pckg_arch_info.S_pnr_archive;
+	      S_pnr_archive = PB_O_pckg_arch_infos.S_pnr_archive;
+	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
 	      
+	      AS_archive_pnr_parts = S_pnr_archive.split("/");
 	      I_nbr_archive_fn_parts_f1 = ArrayUtils.getLength(AS_archive_pnr_parts);
 	      if (I_nbr_archive_fn_parts_f1 < I_min_nbr_archive_fn_parts) {
 	    	 S_msg_1 = "Pathname \"" + S_pna_archive + "\" doesnt have the minimun required " + I_min_nbr_archive_fn_parts + " parts.";
@@ -268,16 +268,15 @@ public class ArchiveChecker {
 	    	 throw E_rt;
 	    	 }
 	    	 
-	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
-	      AS_archive_pnr_parts = S_pnr_archive.split("/");
-	    	
-	      
 	     LOOP_COMPLETION_CATEGORIES:
 	     for (I_idx_completion_category_f0 = 0; 
 	          I_idx_completion_category_f0 < I_nbr_purpose_completion_categories; 
 	    	  I_idx_completion_category_f0++) {
 	    	  
-	          O_arch_info = PB_O_pckg_arch_info.AO_archinfos[I_idx_completion_category_f0];
+	          O_arch_info = PB_O_pckg_arch_infos.AO_archinfos[I_idx_completion_category_f0];
+	          if (O_arch_info == null) {
+	        	  continue LOOP_COMPLETION_CATEGORIES;
+	              }
 		      O_arch_info.S_ver_locally_stored = null;
 		      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
 		      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
@@ -323,8 +322,8 @@ public class ArchiveChecker {
 			    		if (I_nbr_prev_versions_f1 > 0) {
 			    			 AS_vers_prev = O_file_filter.AS_versions;
 			    			 S_vers_prev = AS_vers_prev.get(0);
-			    		     PB_O_arch_info.E_dl_status = DlStatus.prev;
-			    		     PB_O_arch_info.S_ver_locally_stored = S_vers_prev;
+			    		     O_arch_info.E_dl_status = DlStatus.prev;
+			    		     O_arch_info.S_ver_locally_stored = S_vers_prev;
 			    		     return I_retval_nbr_checked_archives;
 			    	         }
 		    		      }
@@ -334,10 +333,10 @@ public class ArchiveChecker {
 		      
 		      if (F_pna_archive.isFile()) {
 		    	  I_retval_nbr_checked_archives = 1;   
-		    	  PB_O_arch_info.E_dl_status = DlStatus.isFile;
+		    	  O_arch_info.E_dl_status = DlStatus.isFile;
 		    	  if (O_grp_match_result.I_array_size_f1 >= 4) {
 		    		 S_version_received = O_grp_match_result.AS_numbered_groups[1];
-		    		 PB_O_arch_info.S_ver_locally_stored = S_version_received;
+		    		 O_arch_info.S_ver_locally_stored = S_version_received;
 		    	     }
 		          }
 		      else {
@@ -345,9 +344,9 @@ public class ArchiveChecker {
 		          }
 		      
 		      L_size_actual = F_pna_archive.length();
-		      L_size_expected = PB_O_arch_info.I_size;
+		      L_size_expected = O_arch_info.I_size;
 		      if (L_size_actual == L_size_expected) {
-		    	 PB_O_arch_info.E_dl_status = DlStatus.sizeOk; 
+		    	 O_arch_info.E_dl_status = DlStatus.sizeOk; 
 		         }
 		      else {
 		    	  return I_retval_nbr_checked_archives;
@@ -358,7 +357,7 @@ public class ArchiveChecker {
 	
 	protected int FI_check_pckg_version(
 			  final String          PI_S_dnr_site,
-			  final PckgVersionInfo PI_O_ver_info,
+			  final PckgVersionInfo PI_O_pckg_ver_info,
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver) {
 		
@@ -368,29 +367,29 @@ public class ArchiveChecker {
 		      
 		      I_retval_nbr_checked_archives = 0;
 		      
-		      AO_archinfo = PI_O_ver_info.AO_install;
-		      if (O_archinfo != null) {
-		         I_res_nbr_f1 = FI_check_pckg_archive(
+		   //   AO_archinfo = PI_O_pckg_ver_info.O_install;
+		   //   if (O_archinfo != null) {
+		         I_res_nbr_f1 = FI_check_pckg_archives(
 		    		  PI_S_dnr_site,
-		    		  AO_archinfo,
+		    		  PI_O_pckg_ver_info,
 		    		  PI_I_pckg_nr_f0,
 		    		  PI_E_ver,
 		    		  ArchPurpose.install
 		    		  );
 		          I_retval_nbr_checked_archives += I_res_nbr_f1;
-		          }
+		    //      }
 		      
-		      O_archinfo = PI_O_ver_info.O_src;
-		      if (O_archinfo != null) {
+		   //   AO_archinfo = PI_O_pckg_ver_info.AO_src;
+		   //   if (O_archinfo != null) {
 		         I_res_nbr_f1 = FI_check_pckg_archive(
 		    		  PI_S_dnr_site,
-		    		  O_archinfo,
+		    		  PI_O_pckg_ver_info,
 		    		  PI_I_pckg_nr_f0,
 		    		  PI_E_ver,
 		    		  ArchPurpose.source
 		    		  );  
 		          I_retval_nbr_checked_archives += I_res_nbr_f1;
-		          }
+		    //      }
 		      return I_retval_nbr_checked_archives;     
 	}
 	
