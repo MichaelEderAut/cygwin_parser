@@ -55,22 +55,29 @@ public class ArchiveChecker {
 	protected enum ArchPurpose {install, source};
 	
 
-	public enum CompletionCategory {
+	public enum CompletionDegree {
 			
 			incompleteInstall("install-incomplete"), // no valid installation archive found
 			completeInstall("install-complete"), // valid installation archive found but no valid source archive 
-	   	//  incompleteSrc("source-incomplete");
 			completeSrc("source-complete"); // valid installation archive  
 		 
 			public static final String PREFIX = "by-category_";
 			public String S_description;
 			
-			CompletionCategory(final String PI_S_description) {
+			CompletionDegree(final String PI_S_description) {
 				this.S_description = PREFIX + PI_S_description;
 			}
 		}; 
 	
-    public static final int I_nbr_compl_categories = CompletionCategory.values().length;
+		
+    public static final int I_nbr_compl_categories = CompletionDegree.values().length;
+    
+    public enum PurposeCompletion {
+		notFound, prevOk, currentOk 
+	    };
+    
+	public static final int I_nbr_purpose_completion_categories = PurposeCompletion.values().length;
+			  
 	protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.sizeOk.ordinal();
 	// protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.exists.ordinal();
 	
@@ -267,7 +274,7 @@ public class ArchiveChecker {
 	      
 	     LOOP_COMPLETION_CATEGORIES:
 	     for (I_idx_completion_category_f0 = 0; 
-	          I_idx_completion_category_f0 < I_nbr_compl_categories; 
+	          I_idx_completion_category_f0 < I_nbr_purpose_completion_categories; 
 	    	  I_idx_completion_category_f0++) {
 	    	  
 	          O_arch_info = PB_O_pckg_arch_info.AO_archinfos[I_idx_completion_category_f0];

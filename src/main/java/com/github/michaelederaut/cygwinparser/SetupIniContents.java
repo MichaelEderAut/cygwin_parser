@@ -29,7 +29,7 @@ public class SetupIniContents {
 		IllegalArgumentException E_ill_arg;
 		RuntimeException E_rt;
 		String S_msg_1, S_msg_2;
-		 int I_nbr_compl_categories_f1;
+		 int I_nbr_purpose_completion_categories_f1;
 		 
 		 S_msg_1 = null;
 		  if (StringUtils.isBlank(PI_S_pnr_archive)) {
@@ -39,9 +39,9 @@ public class SetupIniContents {
 			 S_msg_1 = "Archive infos must not be null";
 		     }
 		  else {
-			I_nbr_compl_categories_f1 = AO_archinfos.length;
-			if ((I_nbr_compl_categories_f1 < 1) || (I_nbr_compl_categories_f1 > ArchiveChecker.I_nbr_compl_categories)) {
-			   S_msg_1 = "Number of archive infos: " + I_nbr_compl_categories_f1 + " not between 1 and " + ArchiveChecker.I_nbr_compl_categories + ".";
+			I_nbr_purpose_completion_categories_f1 = AO_archinfos.length;
+			if ((I_nbr_purpose_completion_categories_f1 < 1) || (I_nbr_purpose_completion_categories_f1 > ArchiveChecker.I_nbr_purpose_completion_categories)) {
+			   S_msg_1 = "Number of archive infos: " + I_nbr_purpose_completion_categories_f1 + " not between 1 and " + ArchiveChecker.I_nbr_compl_categories + ".";
 			   }
 		    }
 		  if (S_msg_1 != null) {

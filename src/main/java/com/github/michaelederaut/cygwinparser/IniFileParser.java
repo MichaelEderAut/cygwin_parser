@@ -126,7 +126,6 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 	
 	RuntimeException                 E_rt;
 	AssertionError                   E_assert;
-//	AssertionError                   E_assert;
 
 	ParsingState                     E_parsing_state;
 	GroupMatchResult                 O_grp_match_res;
