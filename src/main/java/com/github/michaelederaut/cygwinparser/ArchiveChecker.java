@@ -54,7 +54,7 @@ public class ArchiveChecker {
 	protected enum PckgVersion {current, prev} ;
 	protected enum ArchPurpose {install, source};
 	
-	public enum CompletionDegree {
+	public enum PckgCompletionDegree {
 			
 		incompleteInstall("install-incomplete"), // no valid or only prev installation archive found
 		completeInstall("install-complete"), // valid installation archive found but no valid or only prev source archive found
@@ -63,12 +63,12 @@ public class ArchiveChecker {
 		public static final String PREFIX = "by-category_";
 		public String S_description;
 		
-		CompletionDegree(final String PI_S_description) {
+		PckgCompletionDegree(final String PI_S_description) {
 			this.S_description = PREFIX + PI_S_description;
 		    }
 		}; 
 	
-    public static final int I_nbr_compl_degrees = CompletionDegree.values().length;
+    public static final int I_nbr_pckg_compl_degrees = PckgCompletionDegree.values().length;
     
     public enum PurposeCompletionDegrees {
 		notFound, unknownVersion, prevOk, currentOk 

@@ -20,7 +20,7 @@ import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgArchInfos;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgVersionInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
-import static com.github.michaelederaut.cygwinparser.ArchiveChecker.I_nbr_compl_degrees;
+import static com.github.michaelederaut.cygwinparser.ArchiveChecker.I_nbr_pckg_compl_degrees;
 
 public class IniFileParser {
 	
@@ -129,7 +129,7 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 
 	ParsingState                     E_parsing_state;
 	GroupMatchResult                 O_grp_match_res;
-	PckgArchInfos                    O_pckg_arch_infos_install, O_pck_arch_infos_src;
+//	PckgArchInfos                    O_pckg_arch_infos_install, O_pck_arch_infos_src;
 	ArchInfo                         O_arch_info_install, O_arch_info_src;
                  
 	String                           S_msg_1, S_msg_2, S_line_input, S_pna_inp,
@@ -137,7 +137,7 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 	                                 S_archinfo,  AS_numbered_groups[];
 	int                              I_line_nbr_f1, I_offs_f1;
 	
-	PckgArchInfos O_retval_pck_vers_info = null;
+	PckgArchInfos O_retval_pck_arch_infos = null;
 	E_parsing_state = PB_OM_parsing_state.getValue();
 
 	S_version = null;
@@ -150,6 +150,11 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 	
 	S_line_input = PB_O_buff_reader.FS_re_read_line();
 	I_line_nbr_f1 = PB_O_buff_reader.I_curr_line_nbr;
+	S_size_install    = null;
+	S_chk_sum_install = null;
+	S_size_src        = null;
+	S_chk_sum_src     = null;
+	
 	LOOP_INPUT_LINES: while (E_parsing_state.ordinal() < I_parsing_state_Source) {
 		if (S_line_input == null) {
 		   if  ((E_parsing_state == ParsingState.Install) || (E_parsing_state == ParsingState.Source)) {
@@ -199,7 +204,7 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 				  S_pn_archive = AS_numbered_groups[1];
 				  S_size_src       = AS_numbered_groups[2];
 				  S_chk_sum_src    = AS_numbered_groups[3];
-				  O_pck_arch_infos_src =  new PckgArchInfos(  // TODO +install
+				  O_retval_pck_arch_infos  =  new PckgArchInfos(
 						   S_pn_archive,
 						   S_version,
 						   new ArchInfo[][]{
@@ -217,19 +222,18 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 			S_line_input = PB_O_buff_reader.FS_readLine();
 			I_line_nbr_f1 = PB_O_buff_reader.I_curr_line_nbr;
 		} catch (RuntimeException PI_E_rt) {
-		      S_msg_1 = "Error reading input file \"" + PB_O_buff_reader.S_pn + "\" at line: " + I_line_nbr_f1;
-		      E_rt = new RuntimeException(S_msg_1, PI_E_rt);
+		    S_msg_1 = "Error reading input file \"" + PB_O_buff_reader.S_pn + "\" at line: " + I_line_nbr_f1;
+		    E_rt = new RuntimeException(S_msg_1, PI_E_rt);
 		  throw E_rt;
 		  }
 	}   // END while
 	
-	O_retval_pck_vers_info = new SetupIniContents.PckgVersionInfo(S_version, O_arch_info_install, O_arch_info_src);
 	I_offs_f1 =  PB_OM_parsing_state.I_offset;
 	if (I_offs_f1 != 0) {
 	   EnumReflectionUtils.FV_modify_ordinal_by(E_parsing_state, I_offs_f1);
 	   }
 	PB_OM_parsing_state.setValue(E_parsing_state);
-	return O_retval_pck_vers_info;
+	return O_retval_pck_arch_infos;
 }
 
 public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_reader) {
@@ -241,14 +245,16 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 		
 		ParsingState E_parsing_state;
 		GroupMatchResult O_grp_match_res;
-		SetupIniContents.PckgVersionInfo O_pkg_vers_info, O_pkg_vers_info_prev;
+	//	SetupIniContents.PckgVersionInfo O_pkg_vers_info, O_pkg_vers_info_prev;
+		SetupIniContents.PckgArchInfos O_pkg_arch_infos, O_pkg_arch_infos_prev;
+		
 		MutableParsingState OM_parsing_state;
 		
 		int I_line_nbr_f1, I_line_nbr_of_pckg_start_f1;
 		StringBuilder SB_description_long;
 		String S_msg_1, S_msg_2, S_pna_inp, S_line_input,
 		S_pckg_name, S_description_short, S_description_long, S_description_long_part, S_closing_quote, 
-		S_category, AS_category[], S_requires, AS_requires[];
+		S_category, AS_categories[], S_requires, AS_requires[];
 		ReadLinePolicy E_read_line_policy;
 		
 		O_retval_setup_ini_contents = new SetupIniContents(PI_O_buff_reader);
@@ -258,10 +264,10 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 		S_pckg_name          = null;
 		S_description_short  = null;
 		S_description_long   = null;
-		AS_category          = null;
+		AS_categories          = null;
 		AS_requires          = null;
-		O_pkg_vers_info      = null; 
-		O_pkg_vers_info_prev = null;
+		O_pkg_arch_infos      = null; 
+		O_pkg_arch_infos_prev = null;
 		
 		I_line_nbr_f1               = 0;
 		I_line_nbr_of_pckg_start_f1 = 0;
@@ -304,10 +310,10 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 						    S_pckg_name,
 							S_description_short,
 							S_description_long,
-							AS_category,
+							AS_categories,
 							AS_requires,
-							O_pkg_vers_info, 
-							O_pkg_vers_info_prev,
+							O_pkg_arch_infos, 
+							O_pkg_arch_infos_prev,
 							I_line_nbr_of_pckg_start_f1);   
 				   break LOOP_INPUT_LINES;
 			    }
@@ -326,18 +332,18 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 						   S_pckg_name,
 						   S_description_short,
 						   S_description_long,
-						   AS_category,
+						   AS_categories,
 						   AS_requires,
-						   O_pkg_vers_info, 
-						   O_pkg_vers_info_prev,
+						   O_pkg_arch_infos, 
+						   O_pkg_arch_infos_prev,
 						   I_line_nbr_of_pckg_start_f1);   
 					   
 					   S_description_short  = null;
 					   S_description_long   = null;
-					   AS_category          = null;
+					   AS_categories          = null;
 					   AS_requires          = null;
-					   O_pkg_vers_info      = null; 
-					   O_pkg_vers_info_prev = null;
+					   O_pkg_arch_infos      = null; 
+					   O_pkg_arch_infos_prev = null;
 				       }
 					
 					S_pckg_name = O_grp_match_res.HS_named_groups.get(PKG_NAME).S_grp_val;
@@ -394,7 +400,7 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_category.O_patt);
 				if (O_grp_match_res.I_map_size_f1 >= 1) {
 				   S_category = O_grp_match_res.HS_named_groups.get(CATEGORY).S_grp_val;
-				   AS_category = S_category.split("\\s+");
+				   AS_categories = S_category.split("\\s+");
 				   E_parsing_state = ParsingState.Category;
 				   }
 			    }
@@ -408,8 +414,8 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 			    }
 			else if (E_parsing_state == ParsingState.Requires)  {
 				OM_parsing_state = new MutableParsingState(E_parsing_state);
-				O_pkg_vers_info = FO_parse_pck_info(PI_O_buff_reader, OM_parsing_state);
-				if (O_pkg_vers_info == null) {
+				O_pkg_arch_infos = FO_parse_pck_info(PI_O_buff_reader, OM_parsing_state);
+				if (O_pkg_arch_infos == null) {
 					S_msg_1 =  "Error when parsing \'" + E_parsing_state.toString() + "\'";
 					E_np = new NullPointerException(S_msg_1);
 					S_msg_2 = "Error at line: " + I_line_nbr_f1 + "\n" +
@@ -428,14 +434,14 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 				   }
 				else {
 					E_parsing_state = ParsingState.InterPgk;  // no [prev] line_found
-					O_pkg_vers_info_prev = null;
+					O_pkg_arch_infos_prev = null;
 					E_read_line_policy   = ReadLinePolicy.SkipRead;
 				    }
 		        }
 			else if (E_parsing_state == ParsingState.Prev) {
 				OM_parsing_state = new MutableParsingState(ParsingState.Requires /*,  I_prev_offset */);
-				O_pkg_vers_info_prev = FO_parse_pck_info(PI_O_buff_reader, OM_parsing_state);
-				if (O_pkg_vers_info_prev == null) {
+				O_pkg_arch_infos_prev = FO_parse_pck_info(PI_O_buff_reader, OM_parsing_state); // previous versions of the archives
+				if (O_pkg_arch_infos_prev == null) {
 					S_msg_1 =  "Error when parsing \'" + E_parsing_state.toString() + "\'";
 					E_np = new NullPointerException(S_msg_1);
 					S_msg_2 = "Error at line: " + I_line_nbr_f1 + "\n" +
@@ -455,10 +461,10 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 					   S_pckg_name,
 					   S_description_short,
 					   S_description_long,
-					   AS_category,
+					   AS_categories,
 					   AS_requires,
-					   O_pkg_vers_info, 
-					   O_pkg_vers_info_prev,
+					   O_pkg_arch_infos, 
+					   O_pkg_arch_infos_prev,
 					   I_line_nbr_of_pckg_start_f1); 
 			   
 			   break LOOP_INPUT_LINES;	
