@@ -71,11 +71,13 @@ public class SetupIniContents {
 	
 	public static class PckgArchInfos {
 	     public String   S_pnr_archive;
+	     public String   S_ver_requested;
 	     public ArchInfo AAO_archinfos[][], AO_archinfos[];  // indexed by, {install, src}, completion degrees
 	     
 	 public PckgArchInfos(
 			 final String PI_S_pnr_archive,
-			 final ArchInfo AAO_archinfos[][]) {
+			 final String PI_S_ver_requested,
+			 final ArchInfo PI_AAO_archinfos[][]) {
 		 
 		IllegalArgumentException E_ill_arg;
 		RuntimeException E_rt;
@@ -86,17 +88,20 @@ public class SetupIniContents {
 		 if (StringUtils.isBlank(PI_S_pnr_archive)) {
 		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
 		     }
-		 else if (AAO_archinfos == null) {
+		 else if  (StringUtils.isBlank(PI_S_ver_requested)) {
+		     S_msg_1 = "Requested-version \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
+		     } 
+		 else if (PI_AAO_archinfos == null) {
 			 S_msg_1 = "Archive infos must not be null";
 		     }
 		 else {
-			I_nbr_purposes_f1 = AAO_archinfos.length;  
+			I_nbr_purposes_f1 = PI_AAO_archinfos.length;  
 			if ((I_nbr_purposes_f1 < 1) || (I_nbr_purposes_f1 > 2)) {
 				S_msg_1 = "Number of purposes: " + I_nbr_purposes_f1 + " not between 1 and " + 2 + "."; 
 			    }
 			else {
 			   LOOP_PURPOSES: for (i1 = 0; i1 < 2; i1++) {
-			   AO_archinfos = AAO_archinfos[i1];	
+			   AO_archinfos = PI_AAO_archinfos[i1];	
 			   if (AO_archinfos == null) {
 					S_msg_1 = "Purpose: " + i1 + " must not be null";
 					break LOOP_PURPOSES;
@@ -117,6 +122,10 @@ public class SetupIniContents {
 		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
 		     throw E_rt;
 			 }
+		  this.S_ver_requested = PI_S_ver_requested;
+		  this.S_pnr_archive   = PI_S_pnr_archive;
+		  this.AAO_archinfos   = PI_AAO_archinfos;
+		  
 	     }
 	}
 	

@@ -239,7 +239,8 @@ public class ArchiveChecker {
 		         S_version_received, S_bn_tail, S_bn_suffix, S_arch_type,
 		          AS_archive_pnr_parts[], /* AS_bn_prev[], */ S_vers_prev;  
 	      int I_retval_nbr_checked_archives, I_nbr_archive_fn_parts_f1, I_idx_pckg_name_f0, I_idx_bn_archive_f0, 
-	          I_len_dnr_pckg_f1, I_nbr_prev_versions_f1, I_idx_completion_category_f0;
+	          I_len_dnr_pckg_f1, I_nbr_prev_versions_f1, I_idx_completion_category_f0,
+	          I_idx_purpose_f0;
 	      long L_size_actual, L_size_expected;
 	      
 	      final BiPredicate<Path, BasicFileAttributes> F_B_is_regular =
@@ -267,13 +268,13 @@ public class ArchiveChecker {
 	    	 E_rt = new RuntimeException(S_msg_2, E_assert);
 	    	 throw E_rt;
 	    	 }
-	    	 
+	     I_idx_purpose_f0 = PI_E_purpose.ordinal();	 
 	     LOOP_COMPLETION_CATEGORIES:
 	     for (I_idx_completion_category_f0 = 0; 
 	          I_idx_completion_category_f0 < I_nbr_purpose_completion_degrees; 
 	    	  I_idx_completion_category_f0++) {
 	    	  
-	          O_arch_info = PB_O_pckg_arch_infos.AAO_archinfos[I_idx_completion_category_f0];
+	          O_arch_info = PB_O_pckg_arch_infos.AAO_archinfos[I_idx_purpose_f0][I_idx_completion_category_f0];
 	          if (O_arch_info == null) {
 	        	  continue LOOP_COMPLETION_CATEGORIES;
 	              }

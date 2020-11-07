@@ -131,7 +131,7 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 	GroupMatchResult                 O_grp_match_res;
 	PckgArchInfos                    O_pckg_arch_infos_install, O_pck_arch_infos_src;
 	ArchInfo                         O_arch_info_install, O_arch_info_src;
-	// PckgVersionInfo                 
+                 
 	String                           S_msg_1, S_msg_2, S_line_input, S_pna_inp,
 	                                 S_version, S_pn_archive, S_size_install, S_size_src, S_chk_sum_install, S_chk_sum_src,
 	                                 S_archinfo,  AS_numbered_groups[];
@@ -185,12 +185,6 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 				  S_pn_archive = AS_numbered_groups[1];
 				  S_size_install       = AS_numbered_groups[2];
 				  S_chk_sum_install    = AS_numbered_groups[3];
-				
-//				  O_pckg_arch_infos_install = new PckgArchInfos(
-//						  S_pn_archive, 
-//						   new ArchInfo[]{
-//							   new ArchInfo(S_size_install, S_chk_sum_install)});
-	     		 	 
 				  E_parsing_state = ParsingState.Install;
 			      }
 			   }
@@ -206,9 +200,11 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 				  S_size_src       = AS_numbered_groups[2];
 				  S_chk_sum_src    = AS_numbered_groups[3];
 				  O_pck_arch_infos_src =  new PckgArchInfos(  // TODO +install
-						   S_pn_archive, 
-						   new ArchInfo[]{
-							   new ArchInfo(S_size_src, S_chk_sum_src)});
+						   S_pn_archive,
+						   S_version,
+						   new ArchInfo[][]{
+							   {new ArchInfo(S_size_install, S_chk_sum_install)},
+							   {new ArchInfo(S_size_src,     S_chk_sum_src)}});
 						  
 				  E_parsing_state = ParsingState.Source;
 			      }
