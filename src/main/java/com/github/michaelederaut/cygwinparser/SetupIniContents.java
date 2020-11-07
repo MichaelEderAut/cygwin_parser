@@ -18,55 +18,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class SetupIniContents {
 	
-	public static class PckgArchInfos {
-	     public String   S_pnr_archive;
-	     public ArchInfo AO_archinfos[];
-	     
-	 public PckgArchInfos(
-			 final String PI_S_pnr_archive,
-			 final ArchInfo AO_archinfos[]) {
-		 
-		IllegalArgumentException E_ill_arg;
-		RuntimeException E_rt;
-		String S_msg_1, S_msg_2;
-		 int I_nbr_purpose_completion_categories_f1;
-		 
-		 S_msg_1 = null;
-		  if (StringUtils.isBlank(PI_S_pnr_archive)) {
-		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
-		     }
-		  else if (AO_archinfos == null) {
-			 S_msg_1 = "Archive infos must not be null";
-		     }
-		  else {
-			I_nbr_purpose_completion_categories_f1 = AO_archinfos.length;
-			if ((I_nbr_purpose_completion_categories_f1 < 1) || (I_nbr_purpose_completion_categories_f1 > ArchiveChecker.I_nbr_purpose_completion_categories)) {
-			   S_msg_1 = "Number of archive infos: " + I_nbr_purpose_completion_categories_f1 + " not between 1 and " + ArchiveChecker.I_nbr_compl_categories + ".";
-			   }
-		    }
-		  if (S_msg_1 != null) {
-		     E_ill_arg = new IllegalArgumentException(S_msg_1);
-		     S_msg_2 = "Instantiation of object of type: \'" + PckgArchInfos.class.getName() + "\' failed.";
-		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
-		     throw E_rt;
-			 }
-	     }
-	}
-	
-	
-	public static class PckgPosition {
-       int I_line_nbr_f1;
-       int I_pos_on_stack_f0;
-       
-       public PckgPosition (
-           int PI_I_line_nbr_f1,
-           int PI_I_pos_on_stack_f0) {
-       
-    	   this.I_line_nbr_f1     = PI_I_line_nbr_f1;
-    	   this.I_pos_on_stack_f0 = PI_I_pos_on_stack_f0;
-		   }
-	}
-	
 	public static class ArchInfo {
 		
 		public enum DlStatus {unknown, notFound, prev, exists, isFile, sizeOk, hashOk};
@@ -118,6 +69,72 @@ public class SetupIniContents {
 	return;	
 	     }
 	}  // END of ArchInfo
+	
+	public static class PckgArchInfos {
+	     public String   S_pnr_archive;
+	     public ArchInfo AAO_archinfos[][], AO_archinfos[];  // indexed by, {install, src}, completion degrees
+	     
+	 public PckgArchInfos(
+			 final String PI_S_pnr_archive,
+			 final ArchInfo AAO_archinfos[][]) {
+		 
+		IllegalArgumentException E_ill_arg;
+		RuntimeException E_rt;
+		String S_msg_1, S_msg_2;
+		int i1, I_nbr_purposes_f1, I_nbr_purpose_completion_categories_f1;
+		 
+		 S_msg_1 = null;
+		 if (StringUtils.isBlank(PI_S_pnr_archive)) {
+		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
+		     }
+		 else if (AAO_archinfos == null) {
+			 S_msg_1 = "Archive infos must not be null";
+		     }
+		 else {
+			I_nbr_purposes_f1 = AAO_archinfos.length;  
+			if ((I_nbr_purposes_f1 < 1) || (I_nbr_purposes_f1 > 2)) {
+				S_msg_1 = "Number of purposes: " + I_nbr_purposes_f1 + " not between 1 and " + 2 + "."; 
+			    }
+			else {
+			   LOOP_PURPOSES: for (i1 = 0; i1 < 2; i1++) {
+			   AO_archinfos = AAO_archinfos[i1];	
+			   if (AO_archinfos == null) {
+					S_msg_1 = "Purpose: " + i1 + " must not be null";
+					break LOOP_PURPOSES;
+				    }
+				I_nbr_purpose_completion_categories_f1 = AO_archinfos.length;
+				if ((I_nbr_purpose_completion_categories_f1 < 1) || 
+					(I_nbr_purpose_completion_categories_f1 > ArchiveChecker.I_nbr_purpose_completion_degrees)) {
+			        S_msg_1 = "Number of archive infos: " + i1 + "/" + I_nbr_purpose_completion_categories_f1 + 
+			    		      " not between 1 and " + ArchiveChecker.I_nbr_compl_degrees + ".";
+			                  break LOOP_PURPOSES;
+			          }
+				   }
+			    }
+		    } // END of: if (StringUtils.isBlank(PI_S_pnr_archive))
+		  if (S_msg_1 != null) {
+		     E_ill_arg = new IllegalArgumentException(S_msg_1);
+		     S_msg_2 = "Instantiation of object of type: \'" + PckgArchInfos.class.getName() + "\' failed.";
+		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
+		     throw E_rt;
+			 }
+	     }
+	}
+	
+	
+	public static class PckgPosition {
+       int I_line_nbr_f1;
+       int I_pos_on_stack_f0;
+       
+       public PckgPosition (
+           int PI_I_line_nbr_f1,
+           int PI_I_pos_on_stack_f0) {
+       
+    	   this.I_line_nbr_f1     = PI_I_line_nbr_f1;
+    	   this.I_pos_on_stack_f0 = PI_I_pos_on_stack_f0;
+		   }
+	}
+	
 	
 	
 	public static class PckgVersionInfo {

@@ -68,13 +68,13 @@ public class ArchiveChecker {
 		    }
 		}; 
 	
-    public static final int I_nbr_compl_categories = CompletionDegree.values().length;
+    public static final int I_nbr_compl_degrees = CompletionDegree.values().length;
     
-    public enum PurposeCompletion {
+    public enum PurposeCompletionDegrees {
 		notFound, unknownVersion, prevOk, currentOk 
 	    };
     
-	public static final int I_nbr_purpose_completion_categories = PurposeCompletion.values().length;
+	public static final int I_nbr_purpose_completion_degrees = PurposeCompletionDegrees.values().length;
 			  
 	protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.sizeOk.ordinal();
 	// protected static final int DL_MINIMUM_REQUIREMENT = SetupIniContents.ArchInfo.DlStatus.exists.ordinal();
@@ -245,7 +245,7 @@ public class ArchiveChecker {
 	      final BiPredicate<Path, BasicFileAttributes> F_B_is_regular =
         		  (Path PI_O_path,  BasicFileAttributes PI_attrs) ->   {
         			 String S_pn;
-        			  boolean B_retval = false;
+        			 boolean B_retval = false;
         			 if (PI_attrs.isRegularFile()) {
         				 S_pn = PI_O_path.toString();
         		//		 if (P_pckg_install.O_patt.ma)
@@ -270,10 +270,10 @@ public class ArchiveChecker {
 	    	 
 	     LOOP_COMPLETION_CATEGORIES:
 	     for (I_idx_completion_category_f0 = 0; 
-	          I_idx_completion_category_f0 < I_nbr_purpose_completion_categories; 
+	          I_idx_completion_category_f0 < I_nbr_purpose_completion_degrees; 
 	    	  I_idx_completion_category_f0++) {
 	    	  
-	          O_arch_info = PB_O_pckg_arch_infos.AO_archinfos[I_idx_completion_category_f0];
+	          O_arch_info = PB_O_pckg_arch_infos.AAO_archinfos[I_idx_completion_category_f0];
 	          if (O_arch_info == null) {
 	        	  continue LOOP_COMPLETION_CATEGORIES;
 	              }
@@ -355,9 +355,10 @@ public class ArchiveChecker {
 	      return I_retval_nbr_checked_archives;
 	      } 
 	
+	
 	protected int FI_check_pckg_version(
 			  final String          PI_S_dnr_site,
-			  final PckgVersionInfo PI_O_pckg_ver_info,
+			  final PckgArchInfos PI_O_pckg_arch_infos,
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver) {
 		
@@ -371,7 +372,7 @@ public class ArchiveChecker {
 		   //   if (O_archinfo != null) {
 		         I_res_nbr_f1 = FI_check_pckg_archives(
 		    		  PI_S_dnr_site,
-		    		  PI_O_pckg_ver_info,
+		    		  PI_O_pckg_arch_infos,
 		    		  PI_I_pckg_nr_f0,
 		    		  PI_E_ver,
 		    		  ArchPurpose.install
@@ -381,9 +382,9 @@ public class ArchiveChecker {
 		      
 		   //   AO_archinfo = PI_O_pckg_ver_info.AO_src;
 		   //   if (O_archinfo != null) {
-		         I_res_nbr_f1 = FI_check_pckg_archive(
+		         I_res_nbr_f1 = FI_check_pckg_archives(
 		    		  PI_S_dnr_site,
-		    		  PI_O_pckg_ver_info,
+		    		  PI_O_pckg_arch_infos,
 		    		  PI_I_pckg_nr_f0,
 		    		  PI_E_ver,
 		    		  ArchPurpose.source
