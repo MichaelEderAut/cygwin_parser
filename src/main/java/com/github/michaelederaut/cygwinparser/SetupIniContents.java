@@ -70,9 +70,10 @@ public class SetupIniContents {
 	}  // END of ArchInfo
 	
 	public static class PckgArchInfos {
+		 public String   S_name;
 	     public String   S_pnr_archive;
 	     public String   S_ver_requested;
-	     public ArchInfo AAO_archinfos[][], AO_archinfos[];  // indexed by, {install, src}, completion degrees
+	     public ArchInfo AAO_archinfos[][];  // indexed by, {install, src}, completion degrees
 	     
 	 public PckgArchInfos(
 			 final String PI_S_pnr_archive,
@@ -80,8 +81,9 @@ public class SetupIniContents {
 			 final ArchInfo PI_AAO_archinfos[][]) {
 		 
 		IllegalArgumentException E_ill_arg;
-		RuntimeException E_rt;
-		String S_msg_1, S_msg_2;
+		ArchInfo                 AO_archinfos[]; 
+		RuntimeException         E_rt;
+		String                   S_msg_1, S_msg_2;
 		int i1, I_nbr_purposes_f1, I_nbr_purpose_completion_categories_f1;
 		 
 		 S_msg_1 = null;
@@ -101,16 +103,16 @@ public class SetupIniContents {
 			    }
 			else {
 			   LOOP_PURPOSES: for (i1 = 0; i1 < 2; i1++) {
-			   AO_archinfos = PI_AAO_archinfos[i1];	
-			   if (AO_archinfos == null) {
-					S_msg_1 = "Purpose: " + i1 + " must not be null";
-					break LOOP_PURPOSES;
-				    }
+			      AO_archinfos = PI_AAO_archinfos[i1];	
+			      if (AO_archinfos == null) {
+					  S_msg_1 = "Purpose: " + i1 + " must not be null";
+					  break LOOP_PURPOSES;
+				      }
 				I_nbr_purpose_completion_categories_f1 = AO_archinfos.length;
 				if ((I_nbr_purpose_completion_categories_f1 < 1) || 
 					(I_nbr_purpose_completion_categories_f1 > ArchiveChecker.I_nbr_purpose_completion_degrees)) {
 			        S_msg_1 = "Number of archive infos: " + i1 + "/" + I_nbr_purpose_completion_categories_f1 + 
-			    		      " not between 1 and " + ArchiveChecker.I_nbr_compl_degrees + ".";
+			    		      " not between 1 and " + ArchiveChecker.I_nbr_pckg_compl_degrees + ".";
 			                  break LOOP_PURPOSES;
 			          }
 				   }
@@ -129,7 +131,6 @@ public class SetupIniContents {
 	     }
 	}
 	
-	
 	public static class PckgPosition {
        int I_line_nbr_f1;
        int I_pos_on_stack_f0;
@@ -142,8 +143,6 @@ public class SetupIniContents {
     	   this.I_pos_on_stack_f0 = PI_I_pos_on_stack_f0;
 		   }
 	}
-	
-	
 	
 	public static class PckgVersionInfo {
 			
@@ -191,8 +190,8 @@ public class SetupIniContents {
 	 }
 	}
 	
-public static class PckgInfo  {
-	public String S_name, S_sdesc, S_ldesc, AS_categories[], AS_requires[];
+public static class PckgInfo extends PckgArchInfos  {
+	public String S_sdesc, S_ldesc, AS_categories[], AS_requires[];
 	
 	public PckgVersionInfo O_version_current, O_version_prev;
 
@@ -251,7 +250,7 @@ public static class PckgInfo  {
 		   PO_O_pckg_info.O_version_prev    = PI_O_version_prev;
 	   }
 		   
-	  public PckgInfo ( 
+	  public PckgInfo (
 			  final String PI_S_name,
 			  final String PI_S_sdesc,
 			  final String PI_S_ldesc,
@@ -259,6 +258,8 @@ public static class PckgInfo  {
 			  final String PI_AS_requires[],
 			  final PckgVersionInfo PI_O_version_current,
 			  final PckgVersionInfo PI_O_version_prev) {
+		  
+		  super(null, PI_S_name, null);
 		  
 		   FV_ctor(
 			this,
@@ -281,6 +282,8 @@ public PckgInfo (
 		  final String PI_AS_requires[],
 		  final PckgVersionInfo PI_O_version_current) {
 	  
+	 super(null, PI_S_name, null);
+	 
 	   FV_ctor(
 		this,
 		PI_S_name,
@@ -293,7 +296,8 @@ public PckgInfo (
 		   }
 	}
 
-    public Stack<PckgInfo>                      AO_pckg_info;
+  public Stack<PckgInfo>                      AO_pckg_info;
+ //   public Stack<PckgArchInfos>                 AO_pckg_arch_infos;
     public HashMap<Integer, Line>               HI_O_lines;
 	public TreeMap<Long, Integer>               HL_address_to_line_nbrs;
 	public HashMap<String, PckgPosition>        HS_package_names;
@@ -303,16 +307,11 @@ public PckgInfo (
     	this.HI_O_lines              =  PI_O_buff_rdr.HI_lines;
     	this.HL_address_to_line_nbrs =  PI_O_buff_rdr.HL_address_to_line_nbrs;
     	
-    	this.AO_pckg_info     = new Stack<PckgInfo>();
-        this.HS_package_names = new HashMap<String, PckgPosition>();
-        this.HAS_categories   = new TreeMap<String, TreeSet<String>>(); // category packageds
+    	this.AO_pckg_info = new Stack<PckgInfo>();
+        this.HS_package_names   = new HashMap<String, PckgPosition>();
+        this.HAS_categories    = new TreeMap<String, TreeSet<String>>(); // category packages
     	}
         
-//    public void FV_add(final PckgInfo PI_O_pckg_info) {
-//    	this.AO_pckg_info.push(PI_O_pckg_info);
-//    	return;
-//    }
-    
     public void FV_add(
     		 final String PI_S_pckg_name,
 			 final String PI_S_sdesc,
