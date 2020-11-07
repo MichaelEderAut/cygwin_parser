@@ -20,7 +20,7 @@ import com.github.michaelederaut.cygwinparser.SetupIniContents.ArchInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgArchInfos;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgVersionInfo;
 import com.github.michaelederaut.cygwinparser.SetupIniContents.PckgInfo;
-import static com.github.michaelederaut.cygwinparser.ArchiveChecker.I_nbr_compl_categories;
+import static com.github.michaelederaut.cygwinparser.ArchiveChecker.I_nbr_compl_degrees;
 
 public class IniFileParser {
 	
