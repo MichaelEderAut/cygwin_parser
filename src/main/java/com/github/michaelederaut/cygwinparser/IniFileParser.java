@@ -120,7 +120,7 @@ private static class MutableParsingState  extends MutableObject<ParsingState> {
 	}
 }
 
-private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
+private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 		final LineNbrRandomAccessFile    PB_O_buff_reader,
 		final MutableParsingState        PB_OM_parsing_state) {
 	
@@ -131,13 +131,13 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 	GroupMatchResult                 O_grp_match_res;
 	PckgArchInfos                    O_pckg_arch_infos_install, O_pck_arch_infos_src;
 	ArchInfo                         O_arch_info_install, O_arch_info_src;
-	PckgVersionInfo                  O_retval_pck_vers_info;
+	// PckgVersionInfo                 
 	String                           S_msg_1, S_msg_2, S_line_input, S_pna_inp,
-	                                 S_version, S_pn_archive, S_size, S_chk_sum,
+	                                 S_version, S_pn_archive, S_size_install, S_size_src, S_chk_sum_install, S_chk_sum_src,
 	                                 S_archinfo,  AS_numbered_groups[];
 	int                              I_line_nbr_f1, I_offs_f1;
 	
-	O_retval_pck_vers_info = null;
+	PckgArchInfos O_retval_pck_vers_info = null;
 	E_parsing_state = PB_OM_parsing_state.getValue();
 
 	S_version = null;
@@ -172,6 +172,10 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 			   }
 		    }
 		else if (E_parsing_state == ParsingState.Version) {
+			S_size_install    = null;
+			S_chk_sum_install = null;
+			S_size_src        = null;
+			S_chk_sum_src     = null;
 			O_grp_match_res = RegexpUtils.FO_match(S_line_input, P_install.O_patt);
 			if (O_grp_match_res.I_map_size_f1 >= 1) {
 			   S_archinfo = O_grp_match_res.HS_named_groups.get(INSTALL).S_grp_val;
@@ -179,13 +183,13 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
 				  S_pn_archive = AS_numbered_groups[1];
-				  S_size       = AS_numbered_groups[2];
-				  S_chk_sum    = AS_numbered_groups[3];
+				  S_size_install       = AS_numbered_groups[2];
+				  S_chk_sum_install    = AS_numbered_groups[3];
 				
-				  O_pckg_arch_infos_install = new PckgArchInfos(
-						  S_pn_archive, 
-						   new ArchInfo[]{
-							   new ArchInfo(S_size, S_chk_sum)});
+//				  O_pckg_arch_infos_install = new PckgArchInfos(
+//						  S_pn_archive, 
+//						   new ArchInfo[]{
+//							   new ArchInfo(S_size_install, S_chk_sum_install)});
 	     		 	 
 				  E_parsing_state = ParsingState.Install;
 			      }
@@ -199,12 +203,12 @@ private static SetupIniContents.PckgVersionInfo FO_parse_pck_info (
 			   if (O_grp_match_res.I_array_size_f1 >= 4) {
 				  AS_numbered_groups = O_grp_match_res.AS_numbered_groups;
 				  S_pn_archive = AS_numbered_groups[1];
-				  S_size       = AS_numbered_groups[2];
-				  S_chk_sum    = AS_numbered_groups[3];
-				  O_pck_arch_infos_src =  new PckgArchInfos( 
+				  S_size_src       = AS_numbered_groups[2];
+				  S_chk_sum_src    = AS_numbered_groups[3];
+				  O_pck_arch_infos_src =  new PckgArchInfos(  // TODO +install
 						   S_pn_archive, 
 						   new ArchInfo[]{
-							   new ArchInfo(S_size, S_chk_sum)});
+							   new ArchInfo(S_size_src, S_chk_sum_src)});
 						  
 				  E_parsing_state = ParsingState.Source;
 			      }

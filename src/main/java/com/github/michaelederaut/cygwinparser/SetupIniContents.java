@@ -51,7 +51,6 @@ public class SetupIniContents {
 		         throw E_rt;
 			     }
 		
-	//	this.S_pnr_archive = PI_S_pnr_archive;
 		try {
 			this.I_size = Integer.parseInt(PI_S_size);
 		} catch (NumberFormatException PI_E_nf) {
