@@ -116,6 +116,7 @@ public class ArchiveChecker {
 	    	 String S_version_src;
 	    	 
 	    	 String S_retval = null;
+	    	 
 	    	 O_grp_match_result = RegexpUtils.FO_match(PI_S_bn_archive, P_pckg_src.O_patt);
 	    	 if (O_grp_match_result.I_array_size_f1 < 4) {
             	  return S_retval;
@@ -235,7 +236,7 @@ public class ArchiveChecker {
 		this.S_dna_cygw_repository_root = PI_S_dna_cygw_repository_root;
 	    }
 	
-	protected int FI_check_pckg_archives(
+	public int FI_check_pckg_archives(
 			  final String          PI_S_dnr_site,
 			//  final ArchInfo       PB_O_arch_info,
 			  final PckgArchInfos  PB_O_pckg_arch_infos,
@@ -277,7 +278,8 @@ public class ArchiveChecker {
 	         
 	      I_retval_nbr_checked_archives = 0;
 	      
-	      S_pnr_archive = PB_O_pckg_arch_infos.S_pnr_archive;
+	   //   S_pnr_archive = PB_O_pckg_arch_infos.S_pnr_archive;
+	      S_pnr_archive = PB_O_pckg_arch_infos.S_name;  // TODO
 	      S_pna_archive = this.S_dna_cygw_repository_root + "\\" + PI_S_dnr_site + "\\" + S_pnr_archive;
 	      
 	      AS_archive_pnr_parts = S_pnr_archive.split("/");
@@ -384,7 +386,6 @@ public class ArchiveChecker {
 			  final int             PI_I_pckg_nr_f0,
 			  final PckgVersion     PI_E_ver) {
 		
-		      ArchInfo  AO_archinfo[];
 		      int I_retval_nbr_checked_archives, I_res_nbr_f1;
 		      
 		      
@@ -421,30 +422,56 @@ public class ArchiveChecker {
 			final SetupIniContents PB_O_setup_ini_contents) {
 		
 		PckgInfo O_pckg_info;
+		ArchInfo AO_archinfos_install[];
 		PckgVersionInfo O_pckg_ver_info_curr, O_pckg_ver_info_prev;
-		int I_retval_nbr_checked_archives, I_nbr_pckgs_f1, I_res_nbr_f1, i1;
+		String S_ver_requested;
+		int I_retval_nbr_checked_archives, I_nbr_pckgs_f1, I_res_nbr_f1,
+		I_nbr_archinfos_f1, i1;
 		
 		I_retval_nbr_checked_archives = 0;
 		
 		I_nbr_pckgs_f1 = PB_O_setup_ini_contents.AO_pckg_info.size();
 		for (i1 = 0; i1 < I_nbr_pckgs_f1; i1++) {
 			O_pckg_info = PB_O_setup_ini_contents.AO_pckg_info.get(i1);
-			O_pckg_ver_info_curr = O_pckg_info.O_version_current;
+			// O_pckg_ver_info_curr = O_pckg_info.O_version_current;
+			AO_archinfos_install =  O_pckg_info.AAO_archinfos[0];
+			S_ver_requested = AO_archinfos_install[0].S_version;
+			
+			O_pckg_ver_info_curr = new PckgVersionInfo(
+					O_pckg_info.S_name, 
+					  O_pckg_info.AAO_archinfos[0][0],
+					  O_pckg_info.AAO_archinfos[1][0]);
+			
+//			PckgArchInfos pai = new PckgArchInfos (
+//				    		S_ver_requested,
+//				    		O_pckg_info.AAO_archinfos);
+			
+//			I_res_nbr_f1 = FI_check_pckg_version(
+//					PI_S_dnr_site,
+//					O_pckg_ver_info_curr,
+//					i1,
+//					PckgVersion.current);
 			
 			I_res_nbr_f1 = FI_check_pckg_version(
 					PI_S_dnr_site,
-					O_pckg_ver_info_curr,
-					i1,
-					PckgVersion.current);
+				    new PckgArchInfos (
+				    		S_ver_requested,
+				    		O_pckg_info.AAO_archinfos),
+					        i1,
+					        PckgVersion.current);
+			
 			I_retval_nbr_checked_archives += I_res_nbr_f1;  
 			
-			O_pckg_ver_info_prev = O_pckg_info.O_version_prev;
-			if (O_pckg_ver_info_prev != null) {
+			// O_pckg_ver_info_prev = O_pckg_info.O_version_prev;
+			I_nbr_archinfos_f1 = AO_archinfos_install.length;
+			if (I_nbr_archinfos_f1 >= 3) {
 				I_res_nbr_f1 = FI_check_pckg_version(
 						PI_S_dnr_site,
-						O_pckg_ver_info_prev,
-						i1,
-						PckgVersion.prev);
+						new PckgArchInfos (
+				    		S_ver_requested,
+				    		O_pckg_info.AAO_archinfos),
+					        i1,
+						    PckgVersion.prev);
 				I_retval_nbr_checked_archives += I_res_nbr_f1;  
 			    }
 		    }		
@@ -545,7 +572,7 @@ public class ArchiveChecker {
 		 Row                               O_row;
 		 Cell                              O_cell;
 		
-		 ArchInfo                          O_arch_info_install, O_arch_info_src;
+		 ArchInfo                          O_arch_info_install, O_arch_info_src, AO_arch_infos[];
 		 PckgInfo                          O_pckg_info;
 		 PckgVersionInfo                   O_pckg_vers_info;
 	//	 Stack<String>                     AS_outlines;
@@ -556,7 +583,8 @@ public class ArchiveChecker {
 		 
 		 File           F_pnr_archive;
 	     String         S_msg_1, S_msg_2, S_outline_c, S_outline_f, 
-	                    S_version_current, S_hyperlink_txt, S_hyperlink_destination, S_pnr_archive, S_dnr_archive, S_prv_ver,
+	                    S_version_current, S_hyperlink_txt, S_hyperlink_destination,
+	                    S_ver_requested, S_pnr_archive, S_dnr_archive, S_prv_ver,
 	                    S_cell_header;
 	     StrBuilder     SB_outline_f;
 	     boolean        B_msg_install;
@@ -628,21 +656,27 @@ public class ArchiveChecker {
 				
 				I_pos_on_stack_f0 = PI_O_setup_ini_contents.HS_package_names.get(S_package).I_pos_on_stack_f0;
 				O_pckg_info = PI_O_setup_ini_contents.AO_pckg_info.get(I_pos_on_stack_f0);
-		 	    O_pckg_vers_info = O_pckg_info.O_version_current;
-				if (O_pckg_vers_info == null) {
-					O_pckg_vers_info = O_pckg_info.O_version_prev;
-					if (O_pckg_vers_info == null) {
-						S_msg_1 = "Object of type \'" + PckgVersionInfo.class.getName() + "\' must not be null here.";
+		 	
+				AO_arch_infos = null;
+				if ((O_pckg_info == null) || 
+				    (O_pckg_info.AAO_archinfos == null) ||
+				    (O_pckg_info.AAO_archinfos.length == 0) ||
+				    ((AO_arch_infos = O_pckg_info.AAO_archinfos[0]) == null)) {
+						S_msg_1 = "Object of type \'" + O_pckg_info.getClass().getName() + "\' must not be null here.";
 						E_np = new NullPointerException(S_msg_1);
 						S_msg_2 = "Unable to obtain download-level of package/module: \'" + S_category + "/" + S_package + "\'";
 						E_rt = new RuntimeException(S_msg_2, E_np);
 						throw E_rt;
 					    }
-				    }
-			     
+				 AO_arch_infos = O_pckg_info.AAO_archinfos[0];
+			     S_version_current = AO_arch_infos[0].S_version;
 				 B_msg_install                   = false;
 				 O_arch_purpose_contents_install = null;
 				
+				 O_pckg_vers_info = new PckgVersionInfo(  // TODO
+						 S_version_current,
+						 AO_arch_infos[0],
+						 AO_arch_infos[2]);
 				 S_version_current = O_pckg_vers_info.S_version;
 				 SB_outline_f.append("(" + S_version_current + "):");
 				 O_arch_info_install = O_pckg_vers_info.O_install;
@@ -662,7 +696,8 @@ public class ArchiveChecker {
 							SB_outline_f.append(" " + O_arch_info_install.E_dl_status.name());
 							S_prv_ver = null;
 						    }
-						S_pnr_archive = O_pckg_vers_info.O_install.S_pnr_archive;
+					//	S_pnr_archive = O_pckg_vers_info.O_install.S_pnr_archive;
+						S_pnr_archive = O_pckg_info.S_name; // TODO
 					    F_pnr_archive = new File(S_pnr_archive);
 					    S_dnr_archive = F_pnr_archive.getParent();
 					     
@@ -698,7 +733,8 @@ public class ArchiveChecker {
 							SB_outline_f.append(" " + O_arch_info_src.E_dl_status.name());
 							S_prv_ver = null;
 						   }
-						S_pnr_archive = O_pckg_vers_info.O_src.S_pnr_archive;
+					//	S_pnr_archive = O_pckg_vers_info.O_src.S_pnr_archive;
+						S_pnr_archive = O_pckg_info.S_name; // TODO
 					    F_pnr_archive = new File(S_pnr_archive);
 					    S_dnr_archive = F_pnr_archive.getParent();
 					     
