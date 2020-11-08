@@ -27,9 +27,10 @@ public class SetupIniContents {
 		public int        I_size;
 		public BigInteger O_hash_val;
 	    public DlStatus   E_dl_status = DlStatus.unknown;
-	    public String     S_ver_locally_stored;
+	    public String     S_version;
 	
 	public ArchInfo (
+			final String S_version,
 			final String PI_S_size,
 			final String PI_S_hash_val) {
 		
@@ -71,13 +72,14 @@ public class SetupIniContents {
 	
 	public static class PckgArchInfos {
 		 public String   S_name;
-	     public String   S_pnr_archive;
-	     public String   S_ver_requested;
-	     public ArchInfo AAO_archinfos[][];  // indexed by, {install, src}, completion degrees
+//	     public String   S_pnr_archive;
+//	     public String   S_ver_requested;
+	     public ArchInfo AAO_archinfos[][];  // indexed by, {install, src}, 
+	                                         // indexed by PurpseCompletion degrees {notFound, unknownVersion, prevOk, currentOk}
 	     
 	 public PckgArchInfos(
-			 final String PI_S_pnr_archive,
-			 final String PI_S_ver_requested,
+		//	 final String PI_S_pnr_archive,
+			 final String PI_S_name,
 			 final ArchInfo PI_AAO_archinfos[][]) {
 		 
 		IllegalArgumentException E_ill_arg;
@@ -87,11 +89,12 @@ public class SetupIniContents {
 		int i1, I_nbr_purposes_f1, I_nbr_purpose_completion_categories_f1;
 		 
 		 S_msg_1 = null;
-		 if (StringUtils.isBlank(PI_S_pnr_archive)) {
-		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
-		     }
-		 else if  (StringUtils.isBlank(PI_S_ver_requested)) {
-		     S_msg_1 = "Requested-version \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
+//		 if (StringUtils.isBlank(PI_S_pnr_archive)) {
+//		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
+//		     }
+//		 else
+		 if (StringUtils.isBlank(PI_S_name)) {
+		     S_msg_1 = "Package Name \'" + PI_S_name + "\' must not be null or blank"; 
 		     } 
 		 else if (PI_AAO_archinfos == null) {
 			 S_msg_1 = "Archive infos must not be null";
@@ -124,8 +127,8 @@ public class SetupIniContents {
 		     E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
 		     throw E_rt;
 			 }
-		  this.S_ver_requested = PI_S_ver_requested;
-		  this.S_pnr_archive   = PI_S_pnr_archive;
+		  this.S_name = PI_S_name;
+		//  this.S_pnr_archive   = PI_S_pnr_archive;
 		  this.AAO_archinfos   = PI_AAO_archinfos;
 		  
 	     }
@@ -193,7 +196,7 @@ public class SetupIniContents {
 public static class PckgInfo extends PckgArchInfos  {
 	public String S_sdesc, S_ldesc, AS_categories[], AS_requires[];
 	
-	public PckgVersionInfo O_version_current, O_version_prev;
+//	public PckgArchInfos O_pckg_arch_infos_current, O_pckg_arch_infos_prev;
 
 	public static void FV_ctor(
 			  final PckgInfo PO_O_pckg_info, 
@@ -201,9 +204,8 @@ public static class PckgInfo extends PckgArchInfos  {
 			  final String PI_S_sdesc,
 			  final String PI_S_ldesc,
 			  final String PI_AS_categories[],
-			  final String PI_AS_requires[],
-			  final PckgVersionInfo PI_O_version_current,
-			  final PckgVersionInfo PI_O_version_prev) {
+			  final String PI_AS_requires[]
+			  ) {
 		    
 			RuntimeException         E_rt;
 			NullPointerException     E_np;
@@ -232,9 +234,9 @@ public static class PckgInfo extends PckgArchInfos  {
           else if (ArrayUtils.isEmpty(PI_AS_requires)) {
         	  S_msg_1 = "Requires: \'" + ArrayUtils.toString(PI_AS_requires, "(String[])null") + "\' of package \'" + PI_S_name + "\' must not be null or empty";
               }
-          else if (PI_O_version_current == null) {
-        	 S_msg_1 = "Info about current package-version of type :\'" + PckgVersionInfo.class.getName() + "\' of package \'" + PI_S_name + "\' must not be null"; 
-             }
+//          else if (PI_O_archinfos_current == null) {
+//        	 S_msg_1 = "Info about current package-version of type :\'" + PckgArchInfos.class.getName() + "\' of package \'" + PI_S_name + "\' must not be null"; 
+//             }
           if (S_msg_1 != null) {
         	 E_ill_arg = new IllegalArgumentException(S_msg_1);
         	 S_msg_2 = "Instantiation of object of type: \'" + PckgInfo.class.getName() + "\' failed.";
@@ -246,8 +248,8 @@ public static class PckgInfo extends PckgArchInfos  {
 		   PO_O_pckg_info.S_ldesc           = PI_S_ldesc;
 		   PO_O_pckg_info.AS_categories     = PI_AS_categories;
 		   PO_O_pckg_info.AS_requires       = PI_AS_requires;
-		   PO_O_pckg_info.O_version_current = PI_O_version_current;
-		   PO_O_pckg_info.O_version_prev    = PI_O_version_prev;
+		//   PO_O_pckg_info.O_pckg_arch_infos_current = PI_O_archinfos_current;
+		//   PO_O_pckg_info.O_pckg_arch_infos_prev    = PI_O_archinfos_prev;
 	   }
 		   
 	  public PckgInfo (
@@ -256,10 +258,12 @@ public static class PckgInfo extends PckgArchInfos  {
 			  final String PI_S_ldesc,
 			  final String PI_AS_categories[],
 			  final String PI_AS_requires[],
-			  final PckgVersionInfo PI_O_version_current,
-			  final PckgVersionInfo PI_O_version_prev) {
+			  final ArchInfo[] PI_AO_install,
+			  final ArchInfo[] PI_AO_src) {
 		  
-		  super(null, PI_S_name, null);
+		//  super(PI_S_name, null); // TODO
+		  super (PI_S_name, new ArchInfo[][] {PI_AO_install, PI_AO_src}); // TODO
+		 
 		  
 		   FV_ctor(
 			this,
@@ -267,9 +271,7 @@ public static class PckgInfo extends PckgArchInfos  {
 			PI_S_sdesc,
 			PI_S_ldesc,
 			PI_AS_categories,
-			PI_AS_requires,
-			PI_O_version_current,
-			PI_O_version_prev);
+			PI_AS_requires);
 		   
 		    return;
 		    }
@@ -282,7 +284,7 @@ public PckgInfo (
 		  final String PI_AS_requires[],
 		  final PckgVersionInfo PI_O_version_current) {
 	  
-	 super(null, PI_S_name, null);
+	 super(PI_S_name, null);  // TODO
 	 
 	   FV_ctor(
 		this,
@@ -296,12 +298,11 @@ public PckgInfo (
 		   }
 	}
 
-  public Stack<PckgInfo>                      AO_pckg_info;
- //   public Stack<PckgArchInfos>                 AO_pckg_arch_infos;
+    public Stack<PckgInfo>                      AO_pckg_info;
     public HashMap<Integer, Line>               HI_O_lines;
-	public TreeMap<Long, Integer>               HL_address_to_line_nbrs;
-	public HashMap<String, PckgPosition>        HS_package_names;
-	public TreeMap<String, TreeSet<String>>     HAS_categories;  
+    public TreeMap<Long, Integer>               HL_address_to_line_nbrs;
+    public HashMap<String, PckgPosition>        HS_package_names;
+    public TreeMap<String, TreeSet<String>>     HAS_categories;  
     
     public SetupIniContents(LineNbrRandomAccessFile PI_O_buff_rdr) {
     	this.HI_O_lines              =  PI_O_buff_rdr.HI_lines;
@@ -313,14 +314,14 @@ public PckgInfo (
     	}
         
     public void FV_add(
-    		 final String PI_S_pckg_name,
-			 final String PI_S_sdesc,
-			 final String PI_S_ldesc,
-			 final String PI_AS_categories[],
-			 final String PI_AS_requires[],
-			 final PckgVersionInfo PI_O_version_current,
-			 final PckgVersionInfo PI_O_version_prev,
-			 final int PI_I_curr_line_f1) {
+    	final String PI_S_pckg_name,
+		final String PI_S_sdesc,
+		final String PI_S_ldesc,
+		final String PI_AS_categories[],
+		final String PI_AS_requires[],
+		final PckgVersionInfo PI_O_version_current,
+		final PckgVersionInfo PI_O_version_prev,
+		final int PI_I_curr_line_f1) {
     	
     	  PckgInfo O_pckg_info;
     	  PckgPosition O_pckg_pos;

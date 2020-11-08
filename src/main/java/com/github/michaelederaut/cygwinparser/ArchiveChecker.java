@@ -278,7 +278,7 @@ public class ArchiveChecker {
 	          if (O_arch_info == null) {
 	        	  continue LOOP_COMPLETION_CATEGORIES;
 	              }
-		      O_arch_info.S_ver_locally_stored = null;
+		      O_arch_info.S_version = null;
 		      I_idx_bn_archive_f0 = I_nbr_archive_fn_parts_f1 - 1;
 		      I_idx_pckg_name_f0  = I_nbr_archive_fn_parts_f1 - 2;
 		      S_pckg_name = AS_archive_pnr_parts[I_idx_pckg_name_f0];
@@ -324,7 +324,7 @@ public class ArchiveChecker {
 			    			 AS_vers_prev = O_file_filter.AS_versions;
 			    			 S_vers_prev = AS_vers_prev.get(0);
 			    		     O_arch_info.E_dl_status = DlStatus.prev;
-			    		     O_arch_info.S_ver_locally_stored = S_vers_prev;
+			    		     O_arch_info.S_version = S_vers_prev;
 			    		     return I_retval_nbr_checked_archives;
 			    	         }
 		    		      }
@@ -337,7 +337,7 @@ public class ArchiveChecker {
 		    	  O_arch_info.E_dl_status = DlStatus.isFile;
 		    	  if (O_grp_match_result.I_array_size_f1 >= 4) {
 		    		 S_version_received = O_grp_match_result.AS_numbered_groups[1];
-		    		 O_arch_info.S_ver_locally_stored = S_version_received;
+		    		 O_arch_info.S_version = S_version_received;
 		    	     }
 		          }
 		      else {
@@ -634,8 +634,8 @@ public class ArchiveChecker {
 					 if (I_dl_lvl_install < DL_MINIMUM_REQUIREMENT) {
 		  			    SB_outline_f.append(" install");
 						if (I_dl_lvl_install == ArchInfo.I_dl_status_prev) {
-							SB_outline_f.append("(" + O_arch_info_install.S_ver_locally_stored + ")");
-							S_prv_ver = O_arch_info_install.S_ver_locally_stored;
+							SB_outline_f.append("(" + O_arch_info_install.S_version + ")");
+							S_prv_ver = O_arch_info_install.S_version;
 						    }
 						else {
 							SB_outline_f.append(" " + O_arch_info_install.E_dl_status.name());
@@ -670,8 +670,8 @@ public class ArchiveChecker {
 						    }
 						SB_outline_f.append(" src");
 						if (I_dl_lvl_src == ArchInfo.I_dl_status_prev) {
-							SB_outline_f.append("(" + O_arch_info_src.S_ver_locally_stored + ")");
-							S_prv_ver = O_arch_info_src.S_ver_locally_stored;
+							SB_outline_f.append("(" + O_arch_info_src.S_version + ")");
+							S_prv_ver = O_arch_info_src.S_version;
 						    }
 						else {
 							SB_outline_f.append(" " + O_arch_info_src.E_dl_status.name());

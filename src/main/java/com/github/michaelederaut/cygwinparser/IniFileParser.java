@@ -261,11 +261,11 @@ public static SetupIniContents FO_parse(final LineNbrRandomAccessFile PI_O_buff_
 		SB_description_long = new StringBuilder();
 		E_parsing_state = ParsingState.Init;
 		
-		S_pckg_name          = null;
-		S_description_short  = null;
-		S_description_long   = null;
-		AS_categories          = null;
-		AS_requires          = null;
+		S_pckg_name           = null;
+		S_description_short   = null;
+		S_description_long    = null;
+		AS_categories         = null;
+		AS_requires           = null;
 		O_pkg_arch_infos      = null; 
 		O_pkg_arch_infos_prev = null;
 		
