@@ -205,11 +205,11 @@ private static SetupIniContents.PckgArchInfos FO_parse_pck_info (
 				  S_size_src       = AS_numbered_groups[2];
 				  S_chk_sum_src    = AS_numbered_groups[3];
 				  O_retval_pck_arch_infos  =  new PckgArchInfos(
-						   S_pn_archive,
+					//	   S_pn_archive,
 						   S_version,
 						   new ArchInfo[][]{
-							   {new ArchInfo(S_size_install, S_chk_sum_install)},
-							   {new ArchInfo(S_size_src,     S_chk_sum_src)}});
+							   {new ArchInfo(S_version, S_size_install, S_chk_sum_install)},
+							   {new ArchInfo(S_version, S_size_src,     S_chk_sum_src)}});
 						  
 				  E_parsing_state = ParsingState.Source;
 			      }

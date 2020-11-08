@@ -104,6 +104,28 @@ public class ArchiveChecker {
 	
 	public String S_dna_cygw_repository_root;
 	
+	/**
+	 * 
+	 * @param PI_S_bn_archive String basename to be examined
+	 * @return equivalent install basename of type String, if the argument<br>
+	 * is a valid source archive, null otherwise. 
+	 */
+	public static String FS_get_install_archive_name(final String PI_S_bn_archive) {
+	    
+	    	 GroupMatchResult O_grp_match_result;
+	    	 String S_version_src;
+	    	 
+	    	 String S_retval = null;
+	    	 O_grp_match_result = RegexpUtils.FO_match(PI_S_bn_archive, P_pckg_src.O_patt);
+	    	 if (O_grp_match_result.I_array_size_f1 < 4) {
+            	  return S_retval;
+                  }
+	    	
+	    	S_version_src = O_grp_match_result.AS_numbered_groups[1];
+	    	S_retval = S_version_src.substring(4);
+	    	return S_retval;
+	    }
+	
 	protected class PckgNameFilter {
 		
 		public String S_prefix;
@@ -125,8 +147,7 @@ public class ArchiveChecker {
 			    }
 			this.AS_versions = new Stack<String>();
 		    }	
-	    
-	    
+  
 	   	public BiPredicate<Path, BasicFileAttributes> FB_is_regular =
         		  (Path PI_O_path,  BasicFileAttributes PI_attrs) ->   {
         			  

@@ -30,50 +30,126 @@ public class SetupIniContents {
 	    public String     S_version;
 	
 	public ArchInfo (
-			final String S_version,
+			final String PI_S_version,
 			final String PI_S_size,
 			final String PI_S_hash_val) {
 		
 		IllegalArgumentException E_ill_arg;
 		RuntimeException E_rt;
+		BigInteger O_hash_val;
 		String S_msg_1, S_msg_2;
 		
+		O_hash_val = null;
+		S_msg_1 = null;
+		try {
+			if (StringUtils.isBlank(PI_S_hash_val)) {
+			   S_msg_1 = "Archive-hash-string \'" + PI_S_size + "\' must not be null or blank";
+			   E_ill_arg = new IllegalArgumentException(S_msg_1);
+			   throw E_ill_arg;
+			   }
+			else {
+				try {
+			       O_hash_val = new BigInteger(PI_S_hash_val, 16);
+				} catch (NumberFormatException PI_E_nf) {
+					S_msg_1 = "Unable to convert hash-value String \"" + PI_S_hash_val + "\" to BigInteger";
+					E_ill_arg     = new IllegalArgumentException(S_msg_1, PI_E_nf);
+					throw E_ill_arg;
+				    }	
+			     }
+		} catch (IllegalArgumentException PI_E_ill_arg) {
+			 S_msg_2 = "Instantiation of object of type: \'" + ArchInfo.class.getName() + "\' failed.";
+		     E_rt = new RuntimeException(S_msg_2, PI_E_ill_arg);
+		     throw E_rt;
+			 }  
+		FV_ctor(this, PI_S_version, PI_S_size, O_hash_val);
+		}
+
+	public ArchInfo (
+			final String PI_S_version,
+			final String PI_S_size,
+			final BigInteger PI_O_hash_val) {
+		
+		FV_ctor(this, PI_S_version, PI_S_size, PI_O_hash_val);	
+	}
+	
+	public ArchInfo (
+			final String PI_S_version,
+			final int PI_I_size,
+			final BigInteger PI_O_hash_val) {
+		
+		FV_ctor(this, PI_S_version, PI_I_size, PI_O_hash_val);	
+	}
+	
+	protected static void FV_ctor (
+				ArchInfo PO_O_archinfo,
+				final String PI_S_version,
+				final int PI_I_size,
+			    final BigInteger PI_O_hash_val) {
+		
+		IllegalArgumentException E_ill_arg;
+		RuntimeException E_rt;
+		String S_msg_1, S_msg_2;
+		
+		if (StringUtils.isBlank(PI_S_version)) {
+		   S_msg_1 = "Package version nr.   \'" + PI_S_version + "\' must not be null or blank";
+		   E_ill_arg = new IllegalArgumentException(S_msg_1);
+		   S_msg_2 = "Instantiation of object of type: \'" + ArchInfo.class.getName() + "\' failed.";
+		   E_rt = new RuntimeException(S_msg_2, E_ill_arg);
+		   throw E_rt;
+		   }
+	  	
+		PO_O_archinfo.S_version = PI_S_version;
+		PO_O_archinfo.I_size = PI_I_size;
+		PO_O_archinfo.O_hash_val = PI_O_hash_val;
+		
+		return;
+	}
+
+	protected static void FV_ctor (
+				ArchInfo PO_O_archinfo,
+				final String S_version,
+				final String PI_S_size,
+			    final BigInteger PI_O_hash_val) {
+		
+		IllegalArgumentException E_ill_arg;
+		RuntimeException E_rt;
+		int I_size;
+		String S_msg_1, S_msg_2;
+		
+		I_size = -1;
 		S_msg_1 = null;
 		if (StringUtils.isBlank(PI_S_size)) {
 		   S_msg_1 = "Archive-size-string \'" + PI_S_size + "\' must not be null or blank"; 
 	       }
-		else if (StringUtils.isBlank(PI_S_hash_val)) {
-		   S_msg_1 = "Archive-hash-string \'" + PI_S_size + "\' must not be null or blank"; 
-		   }
-		if (S_msg_1 != null) {
-		         E_ill_arg = new IllegalArgumentException(S_msg_1);
-		         S_msg_2 = "Instantiation of object of type: \'" + ArchInfo.class.getName() + "\' failed.";
-		         E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
-		         throw E_rt;
-			     }
-		
-		try {
-			this.I_size = Integer.parseInt(PI_S_size);
+		else {
+			try {
+			   I_size = Integer.parseInt(PI_S_size);
 		} catch (NumberFormatException PI_E_nf) {
 			S_msg_1 = "Unable to convert size-parameter String \'" + PI_S_size+ "\' to Integer";
-			E_rt    = new RuntimeException(S_msg_1, PI_E_nf);
-			throw E_rt;
 		    }
-		try {
-	       this.O_hash_val = new BigInteger(PI_S_hash_val, 16);
-		} catch (NumberFormatException PI_E_nf) {
-			S_msg_1 = "Unable to convert hash-value String \"" + PI_S_hash_val + "\" to BigInteger";
-			E_rt    = new RuntimeException(S_msg_1, PI_E_nf);
-			throw E_rt;
-		    }
+		}
+	
+		if (S_msg_1 != null) {
+		   E_ill_arg = new IllegalArgumentException(S_msg_1);
+		   S_msg_2 = "Instantiation of object of type: \'" + ArchInfo.class.getName() + "\' failed.";
+		   E_rt = new RuntimeException(S_msg_2 , E_ill_arg);
+		   throw E_rt;
+		   }	
+		
+         FV_ctor(PO_O_archinfo, S_version, I_size, PI_O_hash_val);  
+//		try {
+//	       PO_O_archinfo.O_hash_val = new BigInteger(PI_S_hash_val, 16);
+//		} catch (NumberFormatException PI_E_nf) {
+//			S_msg_1 = "Unable to convert hash-value String \"" + PI_S_hash_val + "\" to BigInteger";
+//			E_rt    = new RuntimeException(S_msg_1, PI_E_nf);
+//			throw E_rt;
+//		    }		
 	return;	
 	     }
 	}  // END of ArchInfo
 	
 	public static class PckgArchInfos {
 		 public String   S_name;
-//	     public String   S_pnr_archive;
-//	     public String   S_ver_requested;
 	     public ArchInfo AAO_archinfos[][];  // indexed by, {install, src}, 
 	                                         // indexed by PurpseCompletion degrees {notFound, unknownVersion, prevOk, currentOk}
 	     
@@ -89,10 +165,6 @@ public class SetupIniContents {
 		int i1, I_nbr_purposes_f1, I_nbr_purpose_completion_categories_f1;
 		 
 		 S_msg_1 = null;
-//		 if (StringUtils.isBlank(PI_S_pnr_archive)) {
-//		     S_msg_1 = "Archive-name \'" + PI_S_pnr_archive + "\' must not be null or blank"; 
-//		     }
-//		 else
 		 if (StringUtils.isBlank(PI_S_name)) {
 		     S_msg_1 = "Package Name \'" + PI_S_name + "\' must not be null or blank"; 
 		     } 
@@ -128,9 +200,7 @@ public class SetupIniContents {
 		     throw E_rt;
 			 }
 		  this.S_name = PI_S_name;
-		//  this.S_pnr_archive   = PI_S_pnr_archive;
 		  this.AAO_archinfos   = PI_AAO_archinfos;
-		  
 	     }
 	}
 	
@@ -261,8 +331,7 @@ public static class PckgInfo extends PckgArchInfos  {
 			  final ArchInfo[] PI_AO_install,
 			  final ArchInfo[] PI_AO_src) {
 		  
-		//  super(PI_S_name, null); // TODO
-		  super (PI_S_name, new ArchInfo[][] {PI_AO_install, PI_AO_src}); // TODO
+		  super (PI_S_name, new ArchInfo[][] {PI_AO_install, PI_AO_src}); 
 		 
 		  
 		   FV_ctor(
@@ -284,7 +353,16 @@ public PckgInfo (
 		  final String PI_AS_requires[],
 		  final PckgVersionInfo PI_O_version_current) {
 	  
-	 super(PI_S_name, null);  // TODO
+	super(PI_S_name, new ArchInfo[][] 
+			{new ArchInfo[] 
+				{new ArchInfo(
+					PI_O_version_current.S_version, 
+					PI_O_version_current.O_install.I_size, 
+					PI_O_version_current.O_install.O_hash_val)}, 
+				{new ArchInfo(
+					PI_O_version_current.S_version,
+					PI_O_version_current.O_src.I_size,
+				    PI_O_version_current.O_src.O_hash_val)}});  
 	 
 	   FV_ctor(
 		this,
@@ -292,10 +370,49 @@ public PckgInfo (
 		PI_S_sdesc,
 		PI_S_ldesc,
 		PI_AS_categories,
-		PI_AS_requires,
-		PI_O_version_current,
-		null);  // prev
-		   }
+		PI_AS_requires); 
+		}
+
+public PckgInfo ( 
+		  final String PI_S_name,
+		  final String PI_S_sdesc,
+		  final String PI_S_ldesc,
+		  final String PI_AS_categories[],
+		  final String PI_AS_requires[],
+		  final PckgVersionInfo PI_O_version_current,
+		  final PckgVersionInfo PI_O_version_prev
+		  ) {
+	  
+	super(PI_S_name, new ArchInfo[][] 
+			{new ArchInfo[] 
+				{new ArchInfo(
+					PI_O_version_current.S_version, 
+					PI_O_version_current.O_install.I_size, 
+					PI_O_version_current.O_install.O_hash_val)}, 
+				{new ArchInfo(
+					PI_O_version_current.S_version,
+					PI_O_version_current.O_src.I_size,
+				    PI_O_version_current.O_src.O_hash_val)},
+			    null,
+			    {new ArchInfo(
+					PI_O_version_prev.S_version, 
+					PI_O_version_prev.O_install.I_size, 
+					PI_O_version_prev.O_install.O_hash_val)}, 
+				{new ArchInfo(
+					PI_O_version_prev.S_version,
+					PI_O_version_prev.O_src.I_size,
+				    PI_O_version_prev.O_src.O_hash_val)},
+			    
+			});  
+	 
+	   FV_ctor(
+		this,
+		PI_S_name,
+		PI_S_sdesc,
+		PI_S_ldesc,
+		PI_AS_categories,
+		PI_AS_requires); 
+		}
 	}
 
     public Stack<PckgInfo>                      AO_pckg_info;
@@ -319,7 +436,7 @@ public PckgInfo (
 		final String PI_S_ldesc,
 		final String PI_AS_categories[],
 		final String PI_AS_requires[],
-		final PckgVersionInfo PI_O_version_current,
+		final PckgVersionInfo PI_O_version_current, 
 		final PckgVersionInfo PI_O_version_prev,
 		final int PI_I_curr_line_f1) {
     	
@@ -356,5 +473,54 @@ public PckgInfo (
     	  }
     	  
     	return;
+    }
+    
+ //-------
+    	
+    public void FV_add(
+    	final String PI_S_pckg_name,
+		final String PI_S_sdesc,
+		final String PI_S_ldesc,
+		final String PI_AS_categories[],
+		final String PI_AS_requires[],
+		final PckgArchInfos PI_AO_archinfos_current,
+		final PckgArchInfos PI_AO_archinfos_prev,
+		final int PI_I_curr_line_f1) {
+    	
+    	  PckgInfo O_pckg_info;
+    	  PckgPosition O_pckg_pos;
+    	  String S_category, AS_categories[];
+    	  int i1, I_nbr_categories_f1, I_idx_f0;
+    	  TreeSet<String> AO_pckgs;
+    	  
+    	  O_pckg_info = new PckgInfo(
+					PI_S_pckg_name,
+					PI_S_sdesc,
+					PI_S_ldesc,
+					PI_AS_categories,
+					PI_AS_requires,
+					PI_AO_archinfos_current.AAO_archinfos[0], // TODO
+					PI_AO_archinfos_prev.AAO_archinfos[0]); // TODO
+    	  
+    	  I_idx_f0 =  this.AO_pckg_info.size();
+    	  this.AO_pckg_info.add(O_pckg_info);
+    	  O_pckg_pos = new PckgPosition(PI_I_curr_line_f1, I_idx_f0);
+    	  
+    	  this.HS_package_names.put(PI_S_pckg_name, O_pckg_pos);
+    	  I_nbr_categories_f1 = PI_AS_categories.length;
+    	  for (i1 = 0; i1 < I_nbr_categories_f1; i1++) {
+    		  S_category = PI_AS_categories[i1];
+    		  if (HAS_categories.containsKey(S_category)) {
+    			  HAS_categories.get(S_category).add(PI_S_pckg_name);
+    		      }
+    		  else {
+    			  AO_pckgs = new TreeSet<String>() {{add(PI_S_pckg_name); }};
+    			  HAS_categories.put(S_category, AO_pckgs);
+    		  }
+    	  }
+    	  
+    	return;
+ //-------	
+ 
        }
 	}
