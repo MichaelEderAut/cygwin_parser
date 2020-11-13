@@ -66,6 +66,7 @@ public class SetupConfigContents {
 	}
 	
 	public String S_pna_last_cache;
+	public String S_dna_last_cache;
 	public List<Site> AO_mirror_list;
 //	protected String S_pna_last_mirror;
 	public int I_idx_last_mirror_f0 = -1;
