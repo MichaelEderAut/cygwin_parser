@@ -28,7 +28,7 @@ public class SetupIniContents {
 		public BigInteger O_hash_val;
 	    public DlStatus   E_dl_status = DlStatus.unknown;
 	    public String     S_version;
-	    public String     S_pnr_archive;  // TODO
+	    public String     S_pnr_archive;   // TODO
 	
 	public ArchInfo (
 			final String PI_S_version,

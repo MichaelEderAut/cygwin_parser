@@ -35,7 +35,7 @@ public static final String S_TIME_STAMP        = "yyyy-MM-dd_HH_mm-ss";
 public static final SimpleDateFormat O_timestamp_template = new SimpleDateFormat(S_TIME_STAMP);
 
 private static String FS_get_site_root(
-		final String PI_S_dna_cygw_repository_root,
+		final String PI_S_pna_cygw_repository_root,
 		final String PI_S_dnr_site_root) {
 	
 	IOException      E_io;
@@ -45,7 +45,7 @@ private static String FS_get_site_root(
 	
 	String S_retval_dl_site_root = null;
 	
-	   S_retval_dl_site_root =  PI_S_dna_cygw_repository_root + "\\" + PI_S_dnr_site_root;
+	   S_retval_dl_site_root =  PI_S_pna_cygw_repository_root + "\\" + PI_S_dnr_site_root;
 	   F_dl_site_root = new File(S_retval_dl_site_root);
 	   if (!F_dl_site_root.isDirectory()) {
 			S_msg_1 = "Unable to loacte folder: \"" + S_retval_dl_site_root + "\"";

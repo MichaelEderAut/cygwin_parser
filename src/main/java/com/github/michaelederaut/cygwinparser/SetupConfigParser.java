@@ -22,6 +22,8 @@ public class SetupConfigParser {
 	public static final String S_re_mirror_site = "^\\s{1,}([^;]+)\\;([^;]+)\\;([^;]+)\\;([^;]+)\\s*$";
 //	public static final Pattern P_mirror_site   = new Pattern(S_re_mirror_site);
 	public static final Pattern P_mirror_site = Pattern.compile(S_re_mirror_site);
+	public static final String S_re_local_pckg = "^(\\S+?)\\\\((ftp|http|https)(\\%3a\\%2f\\%2f\\S+))$";
+	public static final Pattern P_local_pckg = Pattern.compile(S_re_local_pckg);
 	
 	public static final String LAST_CACHE   = "last-cache";
 	public static final String MIRRORS_LIST = "mirrors-lst";
@@ -41,7 +43,7 @@ public class SetupConfigParser {
 		 ParsingState E_parsing_state;
 		 Site O_site;
 		 String S_msg_1, S_msg_2, S_line_input, AS_numbered_groups[],
-		 S_pna_last_cache, S_url_last_mirror, S_url_mirror_site, S_mirror_host, S_region, S_state ;
+		 S_dna_last_cache, S_pna_last_cache, S_url_last_mirror, S_url_mirror_site, S_mirror_host, S_region, S_state ;
 		 
 		 int I_line_nbr_f1, i1, I_idx_last_mirror_f0, I_nbr_mirrors_f1;
 		 RegexpUtils.GroupMatchResult O_group_match_result;
@@ -59,6 +61,7 @@ public class SetupConfigParser {
 		 
 		I_line_nbr_f1               = 0;
 		S_pna_last_cache            = null;
+		S_dna_last_cache            = null;
 		AO_mirror_list  = new Stack<Site>();
 		S_url_last_mirror = null;
 		I_idx_last_mirror_f0 = -1;
@@ -128,10 +131,16 @@ public class SetupConfigParser {
 				    }
 		      } // END if
 		    }   // END elsif
-		}
+		} // END LOOP
+		
+		O_group_match_result = RegexpUtils.FO_match(S_pna_last_cache, P_local_pckg);
+		if (O_group_match_result.I_array_size_f1 >= 5) {
+		   S_dna_last_cache = O_group_match_result.AS_numbered_groups[1];
+		   }
 		if (I_idx_last_mirror_f0 >= 0) {
 			O_retval_setup_config_contents = new SetupConfigContents();
 			O_retval_setup_config_contents.S_pna_last_cache     = S_pna_last_cache;
+			O_retval_setup_config_contents.S_dna_last_cache     = S_dna_last_cache;
 			O_retval_setup_config_contents.AO_mirror_list       = AO_mirror_list;
 			O_retval_setup_config_contents.S_url_last_mirror    = S_url_last_mirror;
 			O_retval_setup_config_contents.I_idx_last_mirror_f0 = I_idx_last_mirror_f0;
