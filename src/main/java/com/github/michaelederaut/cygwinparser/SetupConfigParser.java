@@ -131,7 +131,7 @@ public class SetupConfigParser {
 				    }
 		      } // END if
 		    }   // END elsif
-		} // END LOOP
+		}   // END LOOP
 		
 		O_group_match_result = RegexpUtils.FO_match(S_pna_last_cache, P_local_pckg);
 		if (O_group_match_result.I_array_size_f1 >= 5) {

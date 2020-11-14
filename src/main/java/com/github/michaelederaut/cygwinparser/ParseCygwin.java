@@ -77,7 +77,7 @@ private static String FS_get_site_root(
     	ArchiveChecker   O_archive_checker;
     	
     	File F_dna_86_64, F_dna_category_logs, F_pna_setup_ini, F_pna_categories_log,  F_pna_categories_xslx;
-    	String S_site_root, S_dnr_site_root, S_dna_cygw_repository_root, S_dna_x86_64, S_dna_catgegory_logs, S_pna_setup_ini, 
+    	String S_site_root, S_dnr_site_root, S_dna_cygw_repositories_root, S_pna_cygw_repository_root, S_dna_x86_64, S_dna_catgegory_logs, S_pna_setup_ini, 
     	S_bntd_categories /* base-name truncated dot */,  
     	S_bn_categories_log, S_bn_categories_xlsx, S_pna_categories_log, S_pna_categories_xlsx, S_time_stamp, S_msg_1, S_msg_2;
     	
@@ -89,9 +89,9 @@ private static String FS_get_site_root(
     	I_idx_mirror_f0 = O_config_contents.I_idx_last_mirror_f0;
     	O_site_current = O_config_contents.AO_mirror_list.get(I_idx_mirror_f0);
     	S_dnr_site_root = O_site_current.S_dnr_url_encoded;
-    	S_dna_cygw_repository_root = O_config_contents.S_pna_last_cache;
+    	S_dna_cygw_repositories_root = O_config_contents.S_dna_last_cache;
     	
-    	S_site_root = FS_get_site_root(S_dna_cygw_repository_root, S_dnr_site_root);
+    	S_site_root = FS_get_site_root(S_dna_cygw_repositories_root, S_dnr_site_root);
     	System.out.println("Site-root: " + S_site_root);
  	
     	S_dna_x86_64         = S_site_root + "\\" + S_dnr_x86_64;
@@ -161,7 +161,7 @@ private static String FS_get_site_root(
     	
     	O_setup_ini_contents = IniFileParser.FO_parse(O_rdr_setup_ini);      // 1
     	O_rdr_setup_ini.FV_close();
-    	O_archive_checker = new ArchiveChecker(S_dna_cygw_repository_root);
+    	O_archive_checker = new ArchiveChecker(S_dna_cygw_repositories_root);
     	O_archive_checker.FI_check_pckgs(S_dnr_site_root, O_setup_ini_contents);  // 2
     	
     	L_timestamp_current = System.currentTimeMillis();
